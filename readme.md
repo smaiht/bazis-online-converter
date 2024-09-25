@@ -7,14 +7,7 @@ https://github.com/user-attachments/assets/47085866-34ac-411c-af3e-91aee774eee5
 git clone https://github.com/smaiht//bazis-online-converter.git
 ~~~
 
-2. Install required packages
-~~~
-cd bazis-online-converter/
-pip install pywin32
-pip install requests
-pip install python-dotenv
-~~~
-or
+2. Install required packages and edit '.env' with BAZIS_PATH (see ''.env.example')
 ~~~
 cd bazis-online-converter/
 pip install -r req.txt
