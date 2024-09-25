@@ -12,7 +12,7 @@ app = FastAPI()
 INPUT_DIR = "inputs"
 TEMP_DIR = "temp"
 
-@app.post("/upload_bazis_project")
+@app.post("/upload_bazis_project/")
 async def create_upload_files(files: List[UploadFile] = File(...), user_data: str = Form(...)):
     folder_id = str(uuid.uuid4())
     temp_folder_path = os.path.join(TEMP_DIR, folder_id)
