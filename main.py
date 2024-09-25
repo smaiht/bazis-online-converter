@@ -8,9 +8,11 @@ import os
 import json
 import shutil
 import requests
+from dotenv import load_dotenv
 
+load_dotenv()
+BAZIS_PATH = os.getenv('BAZIS_PATH')
 
-BAZIS_PATH = "C:\\BazisOnline\\Bazis.exe"
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CONVERTER_SCRIPT_PATH = "./bazisToVariant.js"
 

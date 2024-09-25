@@ -1,0 +1,4 @@
+@echo off
+cd /d C:\Users\e.vorontzov\Desktop\bazis-online-converter
+python main.py
+pause

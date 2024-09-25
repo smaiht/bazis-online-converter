@@ -12,6 +12,12 @@ git clone https://github.com/smaiht//bazis-online-converter.git
 cd bazis-online-converter/
 pip install pywin32
 pip install requests
+pip install python-dotenv
+~~~
+or
+~~~
+cd bazis-online-converter/
+pip install -r req.txt
 ~~~
 
 3. Внутри main.py нужно указать путь до исполняемого файла Bazis (работает только с лицензионной версией)
