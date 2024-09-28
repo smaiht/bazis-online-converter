@@ -147,6 +147,23 @@ def kill_bazis(bazis_process):
     
     log_message('Bazis process terminated')
 
+
+def insert_material_folders():
+    with open(os.path.join(SCRIPT_DIR, INPUT_DATA), "r", encoding='utf-8') as f:
+        user_data = json.load(f)
+
+    material_folders = json.dumps(user_data["MaterialFolders"])
+    placeholder = '"{{MATERIAL_FOLDERS_PLACEHOLDER}}"'
+    
+    with open(os.path.join(SCRIPT_DIR, SUCCESS_FILE), "r", encoding='utf-8') as f:
+        content = f.read()
+
+    updated_content = content.replace(placeholder, material_folders)
+
+    with open(os.path.join(SCRIPT_DIR, SUCCESS_FILE), 'w', encoding='utf-8') as file:
+        file.write(updated_content)
+
+
 def send_to_dotnet():
     with open(os.path.join(SCRIPT_DIR, INPUT_DATA), "r") as f:
         user_data = json.load(f)
@@ -160,12 +177,12 @@ def send_to_dotnet():
     files = []
     for filename in os.listdir(SCRIPT_DIR):
         file_path = os.path.join(SCRIPT_DIR, filename)
-        if os.path.isfile(file_path) and filename not in ['.gitignore', INPUT_DATA, f"{user_data["ModelName"]}.b3d"]:
+        if os.path.isfile(file_path) and filename not in ['.gitignore', INPUT_DATA, INPUT_MODEL]:
             files.append(('Files', (filename, open(file_path, 'rb'), 'application/octet-stream')))
 
     try:
-        # response = requests.post("http://localhost:8123/api/Projects/CreateProjectFromBazisService",
-        response = requests.post("https://api.system123.ru/api/Projects/CreateProjectFromBazisService",
+        # response = requests.post("http://localhost:8123/api/Projects/CreateProjectFromBazisService", # debug
+        response = requests.post("https://api.system123.ru/api/Projects/CreateProjectFromBazisService", # prod
             data=data,
             files=files
         )
@@ -202,6 +219,9 @@ def main():
 
                 if process_folder(processing_path):
                     log_message("Folder processed successfully")
+
+                    insert_material_folders()
+                    log_message("Material Folders IDs inserted successfully")
 
                     # Send to dotnet
                     if send_to_dotnet():

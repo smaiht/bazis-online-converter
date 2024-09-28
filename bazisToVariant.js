@@ -2164,9 +2164,7 @@ let input = {
     "type": 7,
     "value": "",
     "settings": {
-        "values": [
-            9241, 8133
-        ],
+        "values": "{{MATERIAL_FOLDERS_PLACEHOLDER}}",
         "target": 3,
         "has_none": false,
         "tag": null,
