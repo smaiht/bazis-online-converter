@@ -160,7 +160,7 @@ def send_to_dotnet():
     files = []
     for filename in os.listdir(SCRIPT_DIR):
         file_path = os.path.join(SCRIPT_DIR, filename)
-        if os.path.isfile(file_path) and filename not in ['.gitignore', INPUT_DATA]:
+        if os.path.isfile(file_path) and filename not in ['.gitignore', INPUT_DATA, f"{user_data["ModelName"]}.b3d"]:
             files.append(('Files', (filename, open(file_path, 'rb'), 'application/octet-stream')))
 
     try:
