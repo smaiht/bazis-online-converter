@@ -187,6 +187,10 @@ def send_to_dotnet():
             files=files
         )
 
+        if not response.ok:
+            log_message(f"Request failed with status code {response.status_code}", 'ERROR')
+            log_message(f"Response content: {response.text}", 'ERROR')
+
         return response.ok
 
     except requests.RequestException as e:
@@ -223,6 +227,7 @@ def main():
                     insert_material_folders()
                     log_message("Material Folders IDs inserted successfully")
 
+                    log_message("Trying send to .NET ...")
                     # Send to dotnet
                     if send_to_dotnet():
                         log_message("Data sent to .NET successfully")
