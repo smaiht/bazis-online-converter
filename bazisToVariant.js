@@ -1,4 +1,4 @@
-﻿Action.LoadModel('model.b3d');
+﻿Action.LoadModel('results/model.b3d');
 system.sleep(500);
 
 const sys_mats = {
@@ -2321,4 +2321,4 @@ let project = {
 };
 
 let fs = require('fs');
-fs.writeFileSync('output.s123proj', JSON.stringify(project, null, 2));
+fs.writeFileSync('results/project.s123proj', JSON.stringify(project, null, 2));

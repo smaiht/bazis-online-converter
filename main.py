@@ -10,10 +10,13 @@ import shutil
 import requests
 from dotenv import load_dotenv
 
+from logger import log_message, log_folder_check
+
 load_dotenv()
 BAZIS_PATH = os.getenv('BAZIS_PATH')
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+# SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+SCRIPT_DIR = "results"
 CONVERTER_SCRIPT_PATH = "./bazisToVariant.js"
 
 INPUT_DIR = "inputs"
@@ -21,9 +24,10 @@ PROCESSING_DIR = "processings"
 ERROR_DIR = "errors"
 
 INPUT_MODEL = "model.b3d"
-SUCCESS_FILE = "output.s123proj"
+INPUT_DATA = "user_data.json"
+SUCCESS_FILE = "project.s123proj"
 
-TIMEOUT = 120  # 2 minutes
+TIMEOUT = 30
 
 
 def activate_window(hwnd):
@@ -41,26 +45,30 @@ def send_enter(hwnd):
     shell.SendKeys('%')  # Alt key
     time.sleep(0.1)
     shell.SendKeys('{ENTER}')
-    
-def copy_model_to_script_dir(processing_folder):
-    source_model = os.path.join(processing_folder, INPUT_MODEL)
-    target_model = os.path.join(SCRIPT_DIR, INPUT_MODEL)
-    if os.path.exists(source_model):
-        shutil.copy2(source_model, target_model)
-        print(f"Copied model from {source_model} to {target_model}")
-    else:
-        raise FileNotFoundError(f"Model file not found in {processing_folder}")
+
+
+
+def copy_to_script_dir(source_folder):
+    for item in os.listdir(source_folder):
+        s = os.path.join(source_folder, item)
+        d = os.path.join(SCRIPT_DIR, item)
+        if os.path.isdir(s):
+            shutil.copytree(s, d, dirs_exist_ok=True)
+        else:
+            shutil.copy2(s, d)
+    log_message(f"Copied all contents from {source_folder} to {SCRIPT_DIR}")
 
 def remove_previous_data():
-    model_path = os.path.join(SCRIPT_DIR, INPUT_MODEL)
-    if os.path.exists(model_path):
-        os.remove(model_path)
-        print(f"Removed copied model: {model_path}")
+    for item in os.listdir(SCRIPT_DIR):
+        if item not in ['.gitignore']:
+            item_path = os.path.join(SCRIPT_DIR, item)
+            if os.path.isdir(item_path):
+                shutil.rmtree(item_path)
+            else:
+                os.remove(item_path)
+            log_message(f"Removed: {item_path}")
 
-    output_path = os.path.join(SCRIPT_DIR, "output.s123proj")
-    if os.path.exists(output_path):
-        os.remove(output_path)
-        print(f"Removed previous output.s123proj: {output_path}")
+
 
 def start_bazis():
     return subprocess.Popen([BAZIS_PATH, "--eval", CONVERTER_SCRIPT_PATH])
@@ -74,7 +82,7 @@ def find_bazis_window(pid):
             _, found_pid = win32process.GetWindowThreadProcessId(hwnd)
             if found_pid == pid:
                 title = win32gui.GetWindowText(hwnd)
-                print(f"Found window with PID {pid}: {title}")
+                log_message(f"Found window with PID {pid}: {title}")
                 if 'Подключение к серверу лицензий Базис-Центра' in title:
                     if win32gui.IsIconic(hwnd):
                         win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
@@ -96,7 +104,7 @@ def find_bazis_window(pid):
 
 def process_folder(folder_path):
     remove_previous_data()
-    copy_model_to_script_dir(folder_path)
+    copy_to_script_dir(folder_path)
 
     bazis_process = start_bazis()
     start_time = time.time()
@@ -105,27 +113,28 @@ def process_folder(folder_path):
         hwnd, pirate_detected = find_bazis_window(bazis_process.pid)
 
         if hwnd:
-            print(f"Window found and ready: {win32gui.GetWindowText(hwnd)}")
+            log_message(f"Window found and ready: {win32gui.GetWindowText(hwnd)}")
             activate_window(hwnd)
             win32gui.PostMessage(hwnd, win32con.WM_KEYDOWN, win32con.VK_RETURN, 0)
             win32gui.PostMessage(hwnd, win32con.WM_KEYUP, win32con.VK_RETURN, 0)
-            print("ENTER sent")
+            log_message("ENTER sent")
 
         if pirate_detected:
-            print("Pirate window detected")
+            log_message("Pirate window detected")
             kill_bazis(bazis_process)
-            return "error", "Pirate file detected"
+            return False
 
         if os.path.exists(os.path.join(SCRIPT_DIR, SUCCESS_FILE)):
-            print("Success file found")
+            log_message(f"Found results: {SUCCESS_FILE}")
             kill_bazis(bazis_process)
-            return "success", "Processing completed successfully"
+            return True
 
-        time.sleep(2)
+        time.sleep(1)
 
-    print("Processing timed out")
+    log_message('Processing timed out')
     kill_bazis(bazis_process)
-    return "error", "Processing timed out"
+
+    return False
 
 
 def kill_bazis(bazis_process):
@@ -133,52 +142,84 @@ def kill_bazis(bazis_process):
         bazis_process.terminate()
         bazis_process.wait(timeout = 3)
     except subprocess.TimeoutExpired:
-        print("Bazis process did not terminate gracefully, forcing...")
+        log_message('Bazis process did not terminate gracefully, forcing...')
         bazis_process.kill()
     
-    print("Bazis process terminated")
+    log_message('Bazis process terminated')
 
-def report_bazis_status(status, message, user_data):
-    # response = requests.post("API_ENDPOINT", json={
-    #     "status": status,
-    #     "message": message,
-    #     "userData": user_data
-    # })
-    # return response.ok
-    print(f"Reporting status: {status}, message: {message}")
-    return True
+def send_to_dotnet():
+    with open(os.path.join(SCRIPT_DIR, INPUT_DATA), "r") as f:
+        user_data = json.load(f)
+    
+    data = {
+        "IdCompany": int(user_data["IdCompany"]),
+        "IdUser": str(user_data["IdUser"]),
+        "ModelName": str(user_data["ModelName"])
+    }
+
+    files = []
+    for filename in os.listdir(SCRIPT_DIR):
+        file_path = os.path.join(SCRIPT_DIR, filename)
+        if os.path.isfile(file_path) and filename not in ['.gitignore', INPUT_DATA]:
+            files.append(('Files', (filename, open(file_path, 'rb'), 'application/octet-stream')))
+
+    try:
+        # response = requests.post("http://localhost:8123/api/Projects/CreateProjectFromBazisService",
+        response = requests.post("https://api.system123.ru/api/Projects/CreateProjectFromBazisService",
+            data=data,
+            files=files
+        )
+
+        return response.ok
+
+    except requests.RequestException as e:
+        log_message(f"An error occurred while sending to dotnet: {e}")
+        return False
+
+    finally:
+        for _, file_tuple in files:
+            file_tuple[1].close()
 
 def main():
+    log_message("Starting main process")
+    remove_previous_data()
+
     while True:
-        print('timestamp | checking input dir for folders...')
+        log_folder_check()
+        # log_message('Checking input dir for folders...')
 
         # we have only one worker so we can use FOR..IN here, otherwise we'd need to pick the oldest folder...
         for folder_name in os.listdir(INPUT_DIR):
             folder_path = os.path.join(INPUT_DIR, folder_name)
 
             if os.path.isdir(folder_path):
-                print(f"Processing folder: {folder_name}")
+                log_message(f"\n\n\nFound folder to process: {folder_name}")
 
                 # move to processings
                 processing_path = os.path.join(PROCESSING_DIR, folder_name)
                 shutil.move(folder_path, processing_path)
+                log_message(f"Moved folder to processing: {processing_path}")
 
-                # with open(os.path.join(processing_path, "user_data.json"), "r") as f:
-                #     user_data = json.load(f)
-                user_data = 'test'
+                if process_folder(processing_path):
+                    log_message("Folder processed successfully")
 
-                status, message = process_folder(processing_path)
-                
-                # send report
-                if report_bazis_status(status, message, user_data):
-                    if status == "success":
+                    # Send to dotnet
+                    if send_to_dotnet():
+                        log_message("Data sent to .NET successfully")
                         shutil.rmtree(processing_path)
+                        log_message(f"Removed processing folder: {processing_path}")
                     else:
+                        log_message("Failed to report to .NET, moving to ERRORS", "ERROR")
                         error_path = os.path.join(ERROR_DIR, folder_name)
                         shutil.move(processing_path, error_path)
+                        log_message(f"Moved to error folder: {error_path}")
                 else:
-                    print("Failed to report status, moving back to INPUT_DIR")
-                    shutil.move(processing_path, folder_path)
+                    log_message("Failed to process folder, moving to ERRORS", "ERROR")
+                    error_path = os.path.join(ERROR_DIR, folder_name)
+                    shutil.move(processing_path, error_path)
+                    log_message(f"Moved to error folder: {error_path}")
+
+            time.sleep(1)
 
         time.sleep(10)
 
