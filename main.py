@@ -31,7 +31,7 @@ INPUT_MODEL = "model.b3d"
 INPUT_DATA = "user_data.json"
 SUCCESS_FILE = "project.s123proj"
 
-TIMEOUT = 30
+TIMEOUT = 43
 
 
 def is_superuser(user_id):
