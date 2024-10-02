@@ -8,6 +8,7 @@ import os
 import json
 import shutil
 import requests
+from PIL import Image
 from dotenv import load_dotenv
 
 from logger import log_message, log_folder_check
@@ -31,8 +32,31 @@ ERROR_DIR = "errors"
 INPUT_MODEL = "model.b3d"
 INPUT_DATA = "user_data.json"
 SUCCESS_FILE = "project.s123proj"
+MAIN_ICON = "main_icon.jpg"
+ICON_SIZE = 512
 
 TIMEOUT = 69
+
+def crop_resize_icon():
+    if os.path.exists(MAIN_ICON):
+        with Image.open(MAIN_ICON) as image:
+            # crop
+            width, height = image.size
+            offset = int(abs(width - height) / 2)
+            if width > height:
+                left, top, right, bottom = offset, 0, width - offset, height
+            else:
+                left, top, right, bottom = 0, offset, width, height - offset
+                
+            square_image = image.crop((left, top, right, bottom))
+
+            # resize
+            resized_image = square_image.resize((ICON_SIZE, ICON_SIZE), Image.ANTIALIAS)
+            resized_image.save(MAIN_ICON)
+
+        log_message(f"Icon resized.")
+    else:
+        log_message(f"Icon not found")
 
 
 def resize_window(hwnd, width, height):
@@ -206,6 +230,7 @@ def process_folder(folder_path, pirate_mode, project_id):
         if os.path.exists(os.path.join(SCRIPT_DIR, SUCCESS_FILE)):
             log_message(f"Converted successfully: {SUCCESS_FILE}", IdProject=project_id)
             kill_bazis(bazis_process)
+            crop_resize_icon()
             return True
 
         time.sleep(1)
