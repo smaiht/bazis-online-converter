@@ -35,6 +35,15 @@ SUCCESS_FILE = "project.s123proj"
 TIMEOUT = 69
 
 
+def resize_window(hwnd, width, height):
+    log_message(f"Trying to resize the window.")
+    left, top, right, bottom = win32gui.GetWindowRect(hwnd)
+    
+    win32gui.MoveWindow(hwnd, left, top, width, height, True)
+    
+    padding_left = 100 
+    padding_top = 20
+    win32gui.SetWindowPos(hwnd, 0, padding_left, padding_top, 0, 0, win32con.SWP_NOSIZE | win32con.SWP_NOZORDER)
 
 def find_and_kill_codemeter():
     wmi = win32com.client.GetObject("winmgmts:")
@@ -171,6 +180,10 @@ def process_folder(folder_path, pirate_mode, project_id):
     copy_to_script_dir(folder_path)
 
     bazis_process = start_bazis(pirate_mode, project_id)
+    
+    hwnd, pirate_detected = find_bazis_window(bazis_process.pid)
+    resize_window(new_hwnd, 768, 1280)
+
     start_time = time.time()
 
     while time.time() - start_time < TIMEOUT:
