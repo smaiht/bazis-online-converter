@@ -16,7 +16,8 @@ load_dotenv()
 BAZIS_PATH = os.getenv('BAZIS_PATH')
 BAZIS_PIRATE_PATH = os.getenv('BAZIS_PIRATE_PATH')
 
-BAZIS_CRACK_PATH = os.getenv('BAZIS_CRACK_PATH')
+BAZIS_CRACK_FILE_PATH = os.getenv('BAZIS_CRACK_FILE_PATH')
+APPDATA_ROAMING_FOLDER_PATH = os.getenv('APPDATA_ROAMING_FOLDER_PATH')
 SUPERUSERS_FILE = "superusers.txt"
 
 # SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -31,7 +32,23 @@ INPUT_MODEL = "model.b3d"
 INPUT_DATA = "user_data.json"
 SUCCESS_FILE = "project.s123proj"
 
-TIMEOUT = 43
+TIMEOUT = 69
+
+
+
+def find_and_kill_codemeter():
+    wmi = win32com.client.GetObject("winmgmts:")
+    processes = wmi.ExecQuery("SELECT * FROM Win32_Process WHERE Name='CodeMeterCC.exe'")
+    
+    for process in processes:
+        pid = process.ProcessId
+        log_message(f"CodeMeterCC.exe found. PID: {pid}")
+        os.kill(pid, 9)  # 9 - SIGKILL
+        log_message(f"Process with PID {pid} has been terminated")
+        return True
+    
+    log_message("CodeMeterCC.exe not found")
+    return False
 
 
 def is_superuser(user_id):
@@ -44,19 +61,22 @@ def is_superuser(user_id):
     return user_id.strip().lower() in (su.strip().lower() for su in superusers)
 
 def manage_hasp_ini(enable_crack):
-    hasp_ini_path = os.path.join(BAZIS_CRACK_PATH, "Hasp.ini")
-    hasp_ini_bak_path = os.path.join(BAZIS_CRACK_PATH, "Hasp.ini.bak")
+    roaming_hasp_ini = os.path.join(APPDATA_ROAMING_FOLDER_PATH, "Hasp.ini")
     
     if enable_crack:
-        if os.path.exists(hasp_ini_bak_path):
-            shutil.move(hasp_ini_bak_path, hasp_ini_path)
-            log_message("Renamed Hasp.ini.bak to Hasp.ini for crack version")
+        if not os.path.exists(roaming_hasp_ini):
+            shutil.copy2(BAZIS_CRACK_FILE_PATH, roaming_hasp_ini)
+            log_message("Crack has been copied to Roaming folder")
     else:
-        if os.path.exists(hasp_ini_path):
-            shutil.move(hasp_ini_path, hasp_ini_bak_path)
-            log_message("Renamed Hasp.ini to Hasp.ini.bak for regular version")
+        if os.path.exists(roaming_hasp_ini):
+            os.remove(roaming_hasp_ini)
+            log_message("Crack has been removed")
+        
+    log_message(f"Current state: Hasp.ini {'exists' if os.path.exists(roaming_hasp_ini) else 'does not exist'} in Roaming folder")
 
 def start_bazis(pirate_mode, project_id):
+    find_and_kill_codemeter()
+
     if pirate_mode:
         manage_hasp_ini(True)
         bazis_app = BAZIS_PIRATE_PATH
@@ -242,6 +262,7 @@ def send_project_to_dotnet():
 
 def main():
     log_message("Starting main process")
+    find_and_kill_codemeter()
     remove_previous_data()
 
     while True:
