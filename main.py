@@ -181,8 +181,8 @@ def process_folder(folder_path, pirate_mode, project_id):
 
     bazis_process = start_bazis(pirate_mode, project_id)
     
-    hwnd, pirate_detected = find_bazis_window(bazis_process.pid)
-    resize_window(new_hwnd, 768, 1280)
+    first_hwnd, first_pirate_detected = find_bazis_window(bazis_process.pid)
+    resize_window(first_hwnd, 768, 1280)
 
     start_time = time.time()
 
