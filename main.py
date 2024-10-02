@@ -52,7 +52,7 @@ def crop_resize_icon():
             square_image = image.crop((left, top, right, bottom))
 
             # resize
-            resized_image = square_image.resize((ICON_SIZE, ICON_SIZE), Image.ANTIALIAS)
+            resized_image = square_image.resize((ICON_SIZE, ICON_SIZE), Image.LANCZOS)
             resized_image.save(icon_path)
 
         log_message(f"Icon resized.")
