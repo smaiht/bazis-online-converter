@@ -67,6 +67,9 @@ async def create_upload_files(files: List[UploadFile] = File(...), user_data: st
         
         # Use IdProject from user_data if it exists, otherwise generate a new UUID
         folder_id = user_data_dict.get('IdProject', str(uuid.uuid4()))
+
+        # Ensure IdProject is in user_data_dict
+        user_data_dict['IdProject'] = folder_id
         
         temp_folder_path = os.path.join(TEMP_DIR, folder_id)
         os.makedirs(temp_folder_path, exist_ok=True)
@@ -89,9 +92,6 @@ async def create_upload_files(files: List[UploadFile] = File(...), user_data: st
                 log_message(f"Renamed {file.filename} to model.b3d")
                 os.rename(file_location, new_file_location)
                 b3d_file_renamed = True
-
-        # Ensure IdProject is in user_data_dict
-        user_data_dict['IdProject'] = folder_id
 
         # Save user_data.json
         user_data_path = os.path.join(temp_folder_path, "user_data.json")

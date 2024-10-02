@@ -145,13 +145,13 @@ def find_bazis_window(pid):
             if found_pid == pid:
                 title = win32gui.GetWindowText(hwnd)
                 log_message(f"Found window with PID {pid}: {title}")
-                if 'Подключение к серверу лицензий Базис-Центра' in title:
+                if 'Подключение к серверу лицензий Базис-Центра' in title or 'Connection to Bazis-Center license server' in title:
                     if win32gui.IsIconic(hwnd):
                         win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
                     found_hwnd[0] = hwnd
                     raise StopIteration
 
-                elif 'Открытие "пиратского" файла' in title:
+                elif 'Открытие "пиратского" файла' in title or 'Pirate file opening' in title:
                     pirate_window[0] = True
                     raise StopIteration
                 
