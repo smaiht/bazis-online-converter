@@ -14,6 +14,10 @@ from logger import log_message, log_folder_check
 
 load_dotenv()
 BAZIS_PATH = os.getenv('BAZIS_PATH')
+BAZIS_PIRATE_PATH = os.getenv('BAZIS_PIRATE_PATH')
+
+BAZIS_CRACK_PATH = os.getenv('BAZIS_CRACK_PATH')
+SUPERUSERS_FILE = "superusers.txt"
 
 # SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPT_DIR = "results"
@@ -30,6 +34,39 @@ SUCCESS_FILE = "project.s123proj"
 TIMEOUT = 30
 
 
+def is_superuser(user_id):
+    if not os.path.exists(SUPERUSERS_FILE):
+        return False
+    
+    with open(SUPERUSERS_FILE, "r", encoding='utf-8') as file:
+        superusers = file.read().splitlines()
+    
+    return user_id.strip().lower() in (su.strip().lower() for su in superusers)
+
+def manage_hasp_ini(enable_crack):
+    hasp_ini_path = os.path.join(BAZIS_CRACK_PATH, "Hasp.ini")
+    hasp_ini_bak_path = os.path.join(BAZIS_CRACK_PATH, "Hasp.ini.bak")
+    
+    if enable_crack:
+        if os.path.exists(hasp_ini_bak_path):
+            shutil.move(hasp_ini_bak_path, hasp_ini_path)
+            log_message("Renamed Hasp.ini.bak to Hasp.ini for crack version")
+    else:
+        if os.path.exists(hasp_ini_path):
+            shutil.move(hasp_ini_path, hasp_ini_bak_path)
+            log_message("Renamed Hasp.ini to Hasp.ini.bak for regular version")
+
+def start_bazis(pirate_mode):
+    if pirate_mode:
+        manage_hasp_ini(True)
+        bazis_app = BAZIS_PIRATE_PATH
+    else:
+        manage_hasp_ini(False)
+        bazis_app = BAZIS_PATH
+
+    log_message(f"Bazis version: {bazis_app}")
+    return subprocess.Popen([bazis_app, "--eval", CONVERTER_SCRIPT_PATH])
+
 def activate_window(hwnd):
     shell = win32com.client.Dispatch("WScript.Shell")
     shell.SendKeys('%')
@@ -45,6 +82,16 @@ def send_enter(hwnd):
     shell.SendKeys('%')  # Alt key
     time.sleep(0.1)
     shell.SendKeys('{ENTER}')
+
+def kill_bazis(bazis_process):
+    try:
+        bazis_process.terminate()
+        bazis_process.wait(timeout = 3)
+    except subprocess.TimeoutExpired:
+        log_message('Bazis process did not terminate gracefully, forcing...')
+        bazis_process.kill()
+    
+    log_message('Bazis process terminated')
 
 
 
@@ -67,11 +114,6 @@ def remove_previous_data():
             else:
                 os.remove(item_path)
             log_message(f"Removed: {item_path}")
-
-
-
-def start_bazis():
-    return subprocess.Popen([BAZIS_PATH, "--eval", CONVERTER_SCRIPT_PATH])
 
 def find_bazis_window(pid):
     found_hwnd = [None]
@@ -102,27 +144,31 @@ def find_bazis_window(pid):
 
     return found_hwnd[0], pirate_window[0]
 
-def process_folder(folder_path):
+
+
+def process_folder(folder_path, pirate_mode):
     remove_previous_data()
     copy_to_script_dir(folder_path)
 
-    bazis_process = start_bazis()
+    bazis_process = start_bazis(pirate_mode)
     start_time = time.time()
 
     while time.time() - start_time < TIMEOUT:
-        hwnd, pirate_detected = find_bazis_window(bazis_process.pid)
+        if not pirate_mode:
+            hwnd, pirate_detected = find_bazis_window(bazis_process.pid)
+            if hwnd:
+                log_message(f"Window found and ready: {win32gui.GetWindowText(hwnd)}")
+                activate_window(hwnd)
+                win32gui.PostMessage(hwnd, win32con.WM_KEYDOWN, win32con.VK_RETURN, 0)
+                win32gui.PostMessage(hwnd, win32con.WM_KEYUP, win32con.VK_RETURN, 0)
+                log_message("Enter key sent (Authorized successfully?)")
+                new_hwnd, new_pirate_detected = find_bazis_window(bazis_process.pid)
+                log_message(f"Current window: {win32gui.GetWindowText(new_hwnd)}")
 
-        if hwnd:
-            log_message(f"Window found and ready: {win32gui.GetWindowText(hwnd)}")
-            activate_window(hwnd)
-            win32gui.PostMessage(hwnd, win32con.WM_KEYDOWN, win32con.VK_RETURN, 0)
-            win32gui.PostMessage(hwnd, win32con.WM_KEYUP, win32con.VK_RETURN, 0)
-            log_message("ENTER sent")
-
-        if pirate_detected:
-            log_message("Pirate window detected")
-            kill_bazis(bazis_process)
-            return False
+            if pirate_detected:
+                log_message("Pirate file detected")
+                kill_bazis(bazis_process)
+                return False
 
         if os.path.exists(os.path.join(SCRIPT_DIR, SUCCESS_FILE)):
             log_message(f"Found results: {SUCCESS_FILE}")
@@ -136,16 +182,6 @@ def process_folder(folder_path):
 
     return False
 
-
-def kill_bazis(bazis_process):
-    try:
-        bazis_process.terminate()
-        bazis_process.wait(timeout = 3)
-    except subprocess.TimeoutExpired:
-        log_message('Bazis process did not terminate gracefully, forcing...')
-        bazis_process.kill()
-    
-    log_message('Bazis process terminated')
 
 
 def insert_material_folders():
@@ -171,6 +207,7 @@ def send_to_dotnet():
     data = {
         "IdCompany": int(user_data["IdCompany"]),
         "IdUser": str(user_data["IdUser"]),
+        "IdProject": str(user_data["IdProject"]),
         "ModelName": str(user_data["ModelName"])
     }
 
@@ -207,7 +244,6 @@ def main():
 
     while True:
         log_folder_check()
-        # log_message('Checking input dir for folders...')
 
         # we have only one worker so we can use FOR..IN here, otherwise we'd need to pick the oldest folder...
         for folder_name in os.listdir(INPUT_DIR):
@@ -221,7 +257,15 @@ def main():
                 shutil.move(folder_path, processing_path)
                 log_message(f"Moved folder to processing: {processing_path}")
 
-                if process_folder(processing_path):
+                # can open pirate files?
+                can_open_pirate_files = False
+                with open(os.path.join(processing_path, INPUT_DATA), "r") as f:
+                    user_data = json.load(f)
+                if is_superuser(str(user_data["IdUser"])):
+                    can_open_pirate_files = True
+                    log_message(f"Pirate mode activated!")
+
+                if process_folder(processing_path, can_open_pirate_files):
                     log_message("Folder processed successfully")
 
                     insert_material_folders()
