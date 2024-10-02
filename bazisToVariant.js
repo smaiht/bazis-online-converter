@@ -2318,8 +2318,6 @@ let project = {
     "connection_points": []
 };
 
-let fs = require('fs');
-fs.writeFileSync('results/project.s123proj', JSON.stringify(project, null, 2));
 
 
 // Скрыть вспомогательные объекты
@@ -2342,3 +2340,9 @@ Action.Control.DS.ModelAccuracy = 0;
 Action.Control.Background.Mode = 0;
 
 Action.Control.SavePicture('results/main_icon.jpg')
+
+
+
+
+let fs = require('fs');
+fs.writeFileSync('results/project.s123proj', JSON.stringify(project, null, 2));
