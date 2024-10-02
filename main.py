@@ -56,7 +56,7 @@ def manage_hasp_ini(enable_crack):
             shutil.move(hasp_ini_path, hasp_ini_bak_path)
             log_message("Renamed Hasp.ini to Hasp.ini.bak for regular version")
 
-def start_bazis(pirate_mode):
+def start_bazis(pirate_mode, project_id):
     if pirate_mode:
         manage_hasp_ini(True)
         bazis_app = BAZIS_PIRATE_PATH
@@ -64,7 +64,7 @@ def start_bazis(pirate_mode):
         manage_hasp_ini(False)
         bazis_app = BAZIS_PATH
 
-    log_message(f"Bazis version: {bazis_app}")
+    log_message(f"Using Bazis version: {bazis_app}", IdProject=project_id)
     return subprocess.Popen([bazis_app, "--eval", CONVERTER_SCRIPT_PATH])
 
 def activate_window(hwnd):
@@ -146,11 +146,11 @@ def find_bazis_window(pid):
 
 
 
-def process_folder(folder_path, pirate_mode):
+def process_folder(folder_path, pirate_mode, project_id):
     remove_previous_data()
     copy_to_script_dir(folder_path)
 
-    bazis_process = start_bazis(pirate_mode)
+    bazis_process = start_bazis(pirate_mode, project_id)
     start_time = time.time()
 
     while time.time() - start_time < TIMEOUT:
@@ -166,18 +166,18 @@ def process_folder(folder_path, pirate_mode):
                 log_message(f"Current window: {win32gui.GetWindowText(new_hwnd)}")
 
             if pirate_detected:
-                log_message("Pirate file detected")
+                log_message("Pirate file detected", level="PIRATE", IdProject=project_id)
                 kill_bazis(bazis_process)
                 return False
 
         if os.path.exists(os.path.join(SCRIPT_DIR, SUCCESS_FILE)):
-            log_message(f"Found results: {SUCCESS_FILE}")
+            log_message(f"Converted successfully: {SUCCESS_FILE}", IdProject=project_id)
             kill_bazis(bazis_process)
             return True
 
         time.sleep(1)
 
-    log_message('Processing timed out')
+    log_message('Processing timed out', level="ERROR", IdProject=project_id, tg=True)
     kill_bazis(bazis_process)
 
     return False
@@ -200,15 +200,17 @@ def insert_material_folders():
         file.write(updated_content)
 
 
-def send_to_dotnet():
+def send_project_to_dotnet():
     with open(os.path.join(SCRIPT_DIR, INPUT_DATA), "r") as f:
         user_data = json.load(f)
     
     data = {
         "IdCompany": int(user_data["IdCompany"]),
         "IdUser": str(user_data["IdUser"]),
+        "ModelName": str(user_data["ModelName"]),
         "IdProject": str(user_data["IdProject"]),
-        "ModelName": str(user_data["ModelName"])
+        "Status": "success",
+        "Message": "success"
     }
 
     files = []
@@ -251,6 +253,7 @@ def main():
 
             if os.path.isdir(folder_path):
                 log_message(f"\n\n\nFound folder to process: {folder_name}")
+                log_message(f"Starting processing project...", IdProject=folder_name)
 
                 # move to processings
                 processing_path = os.path.join(PROCESSING_DIR, folder_name)
@@ -263,22 +266,22 @@ def main():
                     user_data = json.load(f)
                 if is_superuser(str(user_data["IdUser"])):
                     can_open_pirate_files = True
-                    log_message(f"Pirate mode activated!")
+                    log_message(f"Pirate mode activated!", IdProject=folder_name)
 
-                if process_folder(processing_path, can_open_pirate_files):
+                if process_folder(processing_path, can_open_pirate_files, folder_name):
                     log_message("Folder processed successfully")
 
                     insert_material_folders()
-                    log_message("Material Folders IDs inserted successfully")
+                    log_message("Material Folders IDs inserted successfully", IdProject=folder_name)
 
                     log_message("Trying send to .NET ...")
                     # Send to dotnet
-                    if send_to_dotnet():
-                        log_message("Data sent to .NET successfully")
+                    if send_project_to_dotnet():
+                        log_message("Data sent to .NET successfully", IdProject=folder_name)
                         shutil.rmtree(processing_path)
                         log_message(f"Removed processing folder: {processing_path}")
                     else:
-                        log_message("Failed to report to .NET, moving to ERRORS", "ERROR")
+                        log_message("Failed to send to .NET, moving to ERRORS", "ERROR", IdProject=folder_name, tg=True)
                         error_path = os.path.join(ERROR_DIR, folder_name)
                         shutil.move(processing_path, error_path)
                         log_message(f"Moved to error folder: {error_path}")

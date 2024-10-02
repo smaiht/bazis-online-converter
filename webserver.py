@@ -1,6 +1,8 @@
 import uvicorn
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
 from typing import List
 import os
 import uuid
@@ -13,7 +15,46 @@ app = FastAPI()
 
 INPUT_DIR = "inputs"
 TEMP_DIR = "temp"
+ERROR_DIR = "errors"
+LOG_DIR = "logs"
 SUPERUSERS_FILE = "superusers.txt"
+
+app.mount("/logs", StaticFiles(directory=LOG_DIR), name="logs")
+
+@app.get("/view_logs")
+async def view_logs():
+    log_files = os.listdir(LOG_DIR)
+    log_links = [f'<a href="/logs/{file}">{file}</a>' for file in log_files]
+    content = "<br>".join(log_links)
+    html_content = f"""
+    <html>
+        <head>
+            <title>Log Files</title>
+        </head>
+        <body>
+            <h1>Available Log Files:</h1>
+            {content}
+        </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
+
+@app.post("/retry/{id_project}")
+async def retry(id_project: str):
+    log_message(f"Got request to retry converting project: {id_project}", IdProject=id_project, tg=True)
+    error_folder = os.path.join(ERROR_DIR, id_project)
+    input_folder = os.path.join(INPUT_DIR, id_project)
+    
+    if not os.path.exists(error_folder):
+        log_message(f"Project {id_project} not found in ERRORS folder", IdProject=id_project, tg=True)
+    
+    try:
+        shutil.move(error_folder, input_folder)
+        log_message(f"Moved project {id_project} from ERRORS to INPUTS for retry")
+
+    except Exception as e:
+        log_message(f"Error moving project {id_project}: {str(e)}", level="ERROR")
+        return JSONResponse(content={}, status_code=200)
 
 @app.post("/upload_bazis_project/")
 async def create_upload_files(files: List[UploadFile] = File(...), user_data: str = Form(...)):
