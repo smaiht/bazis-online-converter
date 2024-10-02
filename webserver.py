@@ -1,6 +1,7 @@
 import uvicorn
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Body
 from fastapi.responses import JSONResponse
+
 from typing import List
 import os
 import uuid
@@ -78,11 +79,19 @@ async def create_upload_files(files: List[UploadFile] = File(...), user_data: st
 # Manage superusers
 @app.post("/manage_superusers/")
 async def manage_superusers(
-    IdUser: str = Form(...),
-    Method: str = Form(default="add")
+    IdUser: str = Body(...),
+    Method: str = Body(...)
 ):
     id_user = IdUser.strip()
     method = Method.lower()
+    log_message(method)
+    log_message(f"Method type: {type(Method)}")
+    log_message(f"Method value: '{Method}'")
+    log_message(f"Method value (repr): {repr(Method)}")
+    log_message(f"Method lowercase: '{method}'")
+    log_message(f"Method lowercase (repr): {repr(method)}")
+    log_message(f"Equality check: {method == 'add'}")
+    log_message(f"Length of method: {len(method)}")
 
     if not os.path.exists(SUPERUSERS_FILE):
         open(SUPERUSERS_FILE, 'a').close()  # Create the file if it doesn't exist
