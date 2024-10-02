@@ -38,8 +38,9 @@ ICON_SIZE = 512
 TIMEOUT = 69
 
 def crop_resize_icon():
-    if os.path.exists(MAIN_ICON):
-        with Image.open(MAIN_ICON) as image:
+    icon_path = os.path.join(SCRIPT_DIR, MAIN_ICON)
+    if os.path.exists(icon_path):
+        with Image.open(icon_path) as image:
             # crop
             width, height = image.size
             offset = int(abs(width - height) / 2)
@@ -52,7 +53,7 @@ def crop_resize_icon():
 
             # resize
             resized_image = square_image.resize((ICON_SIZE, ICON_SIZE), Image.ANTIALIAS)
-            resized_image.save(MAIN_ICON)
+            resized_image.save(icon_path)
 
         log_message(f"Icon resized.")
     else:
@@ -204,10 +205,6 @@ def process_folder(folder_path, pirate_mode, project_id):
     copy_to_script_dir(folder_path)
 
     bazis_process = start_bazis(pirate_mode, project_id)
-    
-    # first_hwnd, first_pirate_detected = find_bazis_window(bazis_process.pid)
-    # resize_window(first_hwnd, 768, 1280)
-
     start_time = time.time()
 
     while time.time() - start_time < TIMEOUT:
