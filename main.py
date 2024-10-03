@@ -37,6 +37,18 @@ ICON_SIZE = 512
 
 TIMEOUT = 69
 
+
+import win32security
+import ntsecuritycon as con
+
+def grant_full_control(file_path):
+    sd = win32security.GetFileSecurity(file_path, win32security.DACL_SECURITY_INFORMATION)
+    dacl = sd.GetSecurityDescriptorDacl()
+    user, domain, type = win32security.LookupAccountName("", win32security.GetUserName())
+    dacl.AddAccessAllowedAce(win32security.ACL_REVISION, con.FILE_ALL_ACCESS, user)
+    sd.SetSecurityDescriptorDacl(1, dacl, 0)
+    win32security.SetFileSecurity(file_path, win32security.DACL_SECURITY_INFORMATION, sd)
+
 def crop_resize_icon():
     icon_path = os.path.join(SCRIPT_DIR, MAIN_ICON)
     if os.path.exists(icon_path):
@@ -103,6 +115,7 @@ def manage_hasp_ini(enable_crack):
             log_message("Crack has been copied to Roaming folder")
     else:
         if os.path.exists(roaming_hasp_ini):
+            grant_full_control(roaming_hasp_ini)
             os.remove(roaming_hasp_ini)
             log_message("Crack has been removed")
         
