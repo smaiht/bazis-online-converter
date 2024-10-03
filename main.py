@@ -8,6 +8,11 @@ import os
 import json
 import shutil
 import requests
+
+import win32security
+import win32api
+import ntsecuritycon as con
+
 from PIL import Image
 from dotenv import load_dotenv
 
@@ -38,14 +43,22 @@ ICON_SIZE = 512
 TIMEOUT = 69
 
 
-import win32security
-import ntsecuritycon as con
 
 def grant_full_control(file_path):
+    # Получаем текущего пользователя
+    username = win32api.GetUserName()
+    
+    # Получаем DACL файла
     sd = win32security.GetFileSecurity(file_path, win32security.DACL_SECURITY_INFORMATION)
     dacl = sd.GetSecurityDescriptorDacl()
-    user, domain, type = win32security.LookupAccountName("", win32security.GetUserName())
-    dacl.AddAccessAllowedAce(win32security.ACL_REVISION, con.FILE_ALL_ACCESS, user)
+    
+    # Получаем SID текущего пользователя
+    user_sid, _, _ = win32security.LookupAccountName("", username)
+    
+    # Добавляем полный доступ для текущего пользователя
+    dacl.AddAccessAllowedAce(win32security.ACL_REVISION, con.FILE_ALL_ACCESS, user_sid)
+    
+    # Устанавливаем новый DACL
     sd.SetSecurityDescriptorDacl(1, dacl, 0)
     win32security.SetFileSecurity(file_path, win32security.DACL_SECURITY_INFORMATION, sd)
 
