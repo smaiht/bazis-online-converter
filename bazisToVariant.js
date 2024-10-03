@@ -2327,6 +2327,7 @@ for(i=0; i < Model.SelectionCount; i++) {
     Model.Selections[i].Visible = false;
 }
 
+SetCamera(p3dLeft) // always set this shit first, so we could make multiple screenshot from diff angles. Otherwise the script freeezes and all screenshots are the same
 Action.DS.Camera.AngleX = 20;
 Action.DS.Camera.AngleY = 20;
 Action.DS.Perspective = true;
@@ -2348,9 +2349,8 @@ let initialAngleY = 20;
 let angleStep = 360 / 32;
 for (let i = 0; i < 32; i++) {
     let newAngleY = initialAngleY + (i * angleStep);
+    SetCamera(p3dLeft) // always set this shit first, so we could make multiple screenshot from diff angles. Otherwise the script freeezes and all screenshots are the same
     Action.DS.Camera.AngleY = newAngleY;
-    
-    system.sleep(32);
     Action.Control.SavePicture(`results/sequence_${i}.jpg`);
 }
 
