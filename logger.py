@@ -56,6 +56,7 @@ def log_message(message, level="INFO", IdProject=None, tg=False):
 
     if tg or IdProject:
         if IdProject:
-            send_tg(f"{log_entry}.\n\nProject: {IdProject}")
+            send_tg(f"{str(message)}.\n\nProject: {IdProject}")
+            # send_tg(f"{log_entry}.\n\nProject: {IdProject}")
         else:
             send_tg(f"{log_entry}")
