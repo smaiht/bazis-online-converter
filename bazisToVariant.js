@@ -2343,6 +2343,17 @@ Action.Control.SavePicture('results/main_icon.jpg')
 
 
 
+// Generate 32 images
+let initialAngleY = Action.DS.Camera.AngleY;
+let angleStep = 360 / 32;
+for (let i = 0; i < 32; i++) {
+    let newAngleY = initialAngleY + (i * angleStep);
+    newAngleY = newAngleY % 360;
+    Action.DS.Camera.AngleY = newAngleY;
+    
+    Action.Control.SavePicture(`results/sequence_${i}.jpg`);
+}
+
 
 let fs = require('fs');
 fs.writeFileSync('results/project.s123proj', JSON.stringify(project, null, 2));
