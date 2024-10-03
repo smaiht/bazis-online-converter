@@ -2344,13 +2344,13 @@ Action.Control.SavePicture('results/main_icon.jpg')
 
 
 // Generate 32 images
-let initialAngleY = Action.DS.Camera.AngleY;
+let initialAngleY = 20;
 let angleStep = 360 / 32;
 for (let i = 0; i < 32; i++) {
     let newAngleY = initialAngleY + (i * angleStep);
-    newAngleY = newAngleY % 360;
     Action.DS.Camera.AngleY = newAngleY;
     
+    system.sleep(32);
     Action.Control.SavePicture(`results/sequence_${i}.jpg`);
 }
 
