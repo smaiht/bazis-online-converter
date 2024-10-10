@@ -13,7 +13,9 @@ from logger import log_message
 
 app = FastAPI()
 
-INPUT_DIR = "inputs"
+INPUTS_TO_BAZIS = "inputs_to_bazis"
+INPUTS_FROM_BAZIS = "inputs_from_bazis"
+
 TEMP_DIR = "temp"
 ERROR_DIR = "errors"
 LOG_DIR = "logs"
@@ -43,7 +45,7 @@ async def view_logs():
 async def retry(id_project: str):
     log_message(f"Got request to retry converting project: {id_project}", IdProject=id_project, tg=True)
     error_folder = os.path.join(ERROR_DIR, id_project)
-    input_folder = os.path.join(INPUT_DIR, id_project)
+    input_folder = os.path.join(INPUTS_FROM_BAZIS, id_project)
     
     if not os.path.exists(error_folder):
         log_message(f"Project {id_project} not found in ERRORS folder", IdProject=id_project, tg=True)
@@ -59,7 +61,7 @@ async def retry(id_project: str):
 @app.post("/upload_bazis_project/")
 async def create_upload_files(files: List[UploadFile] = File(...), user_data: str = Form(...)):
     try:
-        log_message("\n\nNew request received")
+        log_message("\n\n(from bazis) New request received")
 
         # Parse user_data
         user_data_dict = json.loads(user_data)
@@ -99,8 +101,10 @@ async def create_upload_files(files: List[UploadFile] = File(...), user_data: st
             json.dump(user_data_dict, user_data_file)
         log_message("Saved user_data.json")
 
-        # Move the completed folder to INPUT_DIR
-        final_folder_path = os.path.join(INPUT_DIR, folder_id)
+        # Move the completed folder to INPUTS_FROM_BAZIS
+        final_folder_path = os.path.join(INPUTS_FROM_BAZIS, folder_id)
+        if os.path.exists(final_folder_path):
+            shutil.rmtree(final_folder_path)
         shutil.move(temp_folder_path, final_folder_path)
         log_message(f"Moved processed folder to: {final_folder_path}")
 
@@ -114,6 +118,78 @@ async def create_upload_files(files: List[UploadFile] = File(...), user_data: st
         shutil.rmtree(temp_folder_path, ignore_errors=True)
         raise HTTPException(status_code=400, detail=str(e))
 
+
+@app.post("/convert_to_bazis/")
+async def create_upload_files(files: List[UploadFile] = File(...), user_data: str = Form(...)):
+    try:
+        log_message("\n\n(to bazis) New request received")
+
+        # Parse user_data
+        user_data_dict = json.loads(user_data)
+        log_message(f"(to bazis) Received user data: {user_data_dict}")
+        
+        # Get data
+        project_filename = user_data_dict.get('ProjectFile')
+        if not project_filename:
+            raise ValueError("ProjectFile not specified in user_data")
+        
+        project_id = user_data_dict.get('IdProject')
+        if not project_filename:
+            raise ValueError("IdProject not specified in user_data")
+        
+        calculation_id = user_data_dict.get('IdCalculation')
+        if not project_filename:
+            raise ValueError("IdCalculation not specified in user_data")
+        
+        # Set folder name
+        folder_name = f"{project_id}_{calculation_id}"
+        temp_folder_path = os.path.join(TEMP_DIR, folder_name)
+        os.makedirs(temp_folder_path, exist_ok=True)
+        log_message(f"(to bazis) Created folder: {temp_folder_path}")
+
+        # Flag
+        project_file_found = False
+
+        # Save files
+        for file in files:
+            file_location = os.path.join(temp_folder_path, file.filename)
+            with open(file_location, "wb+") as file_object:
+                file_object.write(await file.read())
+            log_message(f"(to bazis) Saved file: {file.filename}")
+
+            # Rename projectFile to "project.s123proj"
+            if file.filename == project_filename:
+                new_file_location = os.path.join(temp_folder_path, "project.s123proj")
+                log_message(f"(to bazis) Renamed {file.filename} to project.s123proj")
+                user_data_dict['ProjectFile'] = "project.s123proj"
+                os.rename(file_location, new_file_location)
+                project_file_found = True
+
+        if not project_file_found:
+            raise Exception('No project file found')
+
+        # Save user_data.json
+        user_data_path = os.path.join(temp_folder_path, "user_data.json")
+        with open(user_data_path, "w") as user_data_file:
+            json.dump(user_data_dict, user_data_file)
+        log_message("(to bazis) Saved user_data.json")
+
+        # Move the completed folder to INPUTS_TO_BAZIS
+        final_folder_path = os.path.join(INPUTS_TO_BAZIS, folder_name)
+        if os.path.exists(final_folder_path):
+            shutil.rmtree(final_folder_path)
+        shutil.move(temp_folder_path, final_folder_path)
+        log_message(f"(to bazis) Moved processed folder to: {final_folder_path}")
+
+        log_message(f"(to bazis) Files uploaded successfully to folder {final_folder_path}")
+        return JSONResponse(content={"message": f"(to bazis) Files uploaded successfully to folder {final_folder_path}"}, status_code=200)
+
+    except Exception as e:
+        log_message(f"(to bazis) Error processing request: {str(e)}", level="ERROR")
+        
+        log_message(f"(to bazis) Cleaned up temporary folder: {temp_folder_path}")
+        shutil.rmtree(temp_folder_path, ignore_errors=True)
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 # Manage superusers

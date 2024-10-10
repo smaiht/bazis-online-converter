@@ -26,21 +26,28 @@ BAZIS_CRACK_FILE_PATH = os.getenv('BAZIS_CRACK_FILE_PATH')
 APPDATA_ROAMING_FOLDER_PATH = os.getenv('APPDATA_ROAMING_FOLDER_PATH')
 SUPERUSERS_FILE = "superusers.txt"
 
+ENDPOINT = os.getenv('ENDPOINT')
+
 # SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPT_DIR = "results"
-CONVERTER_SCRIPT_PATH = "./bazisToVariant.js"
+CONVERTER_FROM_BAZIS_SCRIPT = "./convertBazisToVariant.js"
+CONVERTER_TO_BAZIS_SCRIPT = "./convertVariantToBazis.js"
 
-INPUT_DIR = "inputs"
+INPUTS_TO_BAZIS = "inputs_to_bazis"
+INPUTS_FROM_BAZIS = "inputs_from_bazis"
+
 PROCESSING_DIR = "processings"
 ERROR_DIR = "errors"
 
 INPUT_MODEL = "model.b3d"
 INPUT_DATA = "user_data.json"
-SUCCESS_FILE = "project.s123proj"
+SUCCESS_FILE_FROM_BAZIS = "project.s123proj"
+SUCCESS_FILE_TO_BAZIS = "bazis.b3d"
 MAIN_ICON = "main_icon.jpg"
 ICON_SIZE = 512
 
-TIMEOUT = 69
+
+TIMEOUT = 240
 
 
 
@@ -134,7 +141,7 @@ def manage_hasp_ini(enable_crack):
         
     log_message(f"Current state: Hasp.ini {'exists' if os.path.exists(roaming_hasp_ini) else 'does not exist'} in Roaming folder")
 
-def start_bazis(pirate_mode, project_id):
+def start_bazis(pirate_mode, project_id, script=CONVERTER_FROM_BAZIS_SCRIPT):
     find_and_kill_codemeter()
 
     if pirate_mode:
@@ -145,7 +152,8 @@ def start_bazis(pirate_mode, project_id):
         bazis_app = BAZIS_PATH
 
     log_message(f"Using Bazis version: {bazis_app}", IdProject=project_id)
-    return subprocess.Popen([bazis_app, "--eval", CONVERTER_SCRIPT_PATH])
+    log_message(f"Using script: {script}")
+    return subprocess.Popen([bazis_app, "--eval", script])
 
 def activate_window(hwnd):
     shell = win32com.client.Dispatch("WScript.Shell")
@@ -164,12 +172,12 @@ def send_enter(hwnd):
     shell.SendKeys('{ENTER}')
 
 def kill_bazis(bazis_process):
-    try:
-        bazis_process.terminate()
-        bazis_process.wait(timeout = 3)
-    except subprocess.TimeoutExpired:
-        log_message('Bazis process did not terminate gracefully, forcing...')
-        bazis_process.kill()
+    # try:
+    #     bazis_process.terminate()
+    #     bazis_process.wait(timeout = 3)
+    # except subprocess.TimeoutExpired:
+    #     log_message('Bazis process did not terminate gracefully, forcing...')
+    #     bazis_process.kill()
     
     log_message('Bazis process terminated')
 
@@ -198,6 +206,7 @@ def remove_previous_data():
 def find_bazis_window(pid):
     found_hwnd = [None]
     pirate_window = [False]
+    error_window = [False]
 
     def enum_callback(hwnd, _):
         if win32gui.IsWindowVisible(hwnd) and win32gui.IsWindowEnabled(hwnd):
@@ -214,6 +223,10 @@ def find_bazis_window(pid):
                 elif 'Открытие "пиратского" файла' in title or 'Pirate file opening' in title:
                     pirate_window[0] = True
                     raise StopIteration
+
+                elif 'Ошибка' in title or 'Error' in title:
+                    error_window[0] = True
+                    raise StopIteration
                 
         return True
 
@@ -222,7 +235,7 @@ def find_bazis_window(pid):
     except StopIteration:
         pass
 
-    return found_hwnd[0], pirate_window[0]
+    return found_hwnd[0], pirate_window[0], error_window[0]
 
 
 
@@ -235,23 +248,28 @@ def process_folder(folder_path, pirate_mode, project_id):
 
     while time.time() - start_time < TIMEOUT:
         if not pirate_mode:
-            hwnd, pirate_detected = find_bazis_window(bazis_process.pid)
+            hwnd, pirate_detected, error_window = find_bazis_window(bazis_process.pid)
             if hwnd:
                 log_message(f"Window found and ready: {win32gui.GetWindowText(hwnd)}")
                 activate_window(hwnd)
                 win32gui.PostMessage(hwnd, win32con.WM_KEYDOWN, win32con.VK_RETURN, 0)
                 win32gui.PostMessage(hwnd, win32con.WM_KEYUP, win32con.VK_RETURN, 0)
                 log_message("Enter key sent (Authorized successfully?)")
-                new_hwnd, new_pirate_detected = find_bazis_window(bazis_process.pid)
+                new_hwnd, new_pirate_detected, new_error_window = find_bazis_window(bazis_process.pid)
                 log_message(f"Current window: {win32gui.GetWindowText(new_hwnd)}")
 
             if pirate_detected:
                 log_message("Pirate file detected", level="PIRATE", IdProject=project_id)
                 kill_bazis(bazis_process)
                 return False
+            
+            if error_window:
+                log_message("Error reading file", level="ERROR", IdProject=project_id)
+                kill_bazis(bazis_process)
+                return False
 
-        if os.path.exists(os.path.join(SCRIPT_DIR, SUCCESS_FILE)):
-            log_message(f"Converted successfully: {SUCCESS_FILE}", IdProject=project_id)
+        if os.path.exists(os.path.join(SCRIPT_DIR, SUCCESS_FILE_FROM_BAZIS)):
+            log_message(f"Converted successfully: {SUCCESS_FILE_FROM_BAZIS}", IdProject=project_id)
             kill_bazis(bazis_process)
             crop_resize_icon()
             return True
@@ -264,6 +282,45 @@ def process_folder(folder_path, pirate_mode, project_id):
     return False
 
 
+def process_folder_to_bazis(folder_path, id_project, id_calculation):
+    remove_previous_data()
+    copy_to_script_dir(folder_path)
+
+    log_message('(to bazis) Start')
+    bazis_process = start_bazis(False, id_project, CONVERTER_TO_BAZIS_SCRIPT)
+    start_time = time.time()
+
+    while time.time() - start_time < TIMEOUT:
+        hwnd, pirate_detected, error_window = find_bazis_window(bazis_process.pid)
+        if hwnd:
+            log_message(f"Window found and ready: {win32gui.GetWindowText(hwnd)}")
+            activate_window(hwnd)
+            win32gui.PostMessage(hwnd, win32con.WM_KEYDOWN, win32con.VK_RETURN, 0)
+            win32gui.PostMessage(hwnd, win32con.WM_KEYUP, win32con.VK_RETURN, 0)
+            log_message("Enter key sent (Authorized successfully?)")
+            new_hwnd, new_pirate_detected, new_error_window = find_bazis_window(bazis_process.pid)
+            log_message(f"Current window: {win32gui.GetWindowText(new_hwnd)}")
+
+        if error_window:
+            log_message("Error reading file", level="ERROR", IdProject=id_project)
+            kill_bazis(bazis_process)
+            return False
+            
+        if os.path.exists(os.path.join(SCRIPT_DIR, SUCCESS_FILE_TO_BAZIS)):
+            log_message(f"Converted successfully: {SUCCESS_FILE_TO_BAZIS}", IdProject=id_project)
+            kill_bazis(bazis_process)
+            return True
+
+        time.sleep(1)
+
+    log_message('(to bazis) Processing timed out', level="ERROR", IdProject=id_project, tg=True)
+    kill_bazis(bazis_process)
+
+    return False
+
+
+
+
 
 def insert_material_folders():
     with open(os.path.join(SCRIPT_DIR, INPUT_DATA), "r", encoding='utf-8') as f:
@@ -272,37 +329,49 @@ def insert_material_folders():
     material_folders = json.dumps(user_data["MaterialFolders"])
     placeholder = '"{{MATERIAL_FOLDERS_PLACEHOLDER}}"'
     
-    with open(os.path.join(SCRIPT_DIR, SUCCESS_FILE), "r", encoding='utf-8') as f:
+    with open(os.path.join(SCRIPT_DIR, SUCCESS_FILE_FROM_BAZIS), "r", encoding='utf-8') as f:
         content = f.read()
 
     updated_content = content.replace(placeholder, material_folders)
 
-    with open(os.path.join(SCRIPT_DIR, SUCCESS_FILE), 'w', encoding='utf-8') as file:
+    with open(os.path.join(SCRIPT_DIR, SUCCESS_FILE_FROM_BAZIS), 'w', encoding='utf-8') as file:
         file.write(updated_content)
 
 
-def send_project_to_dotnet():
+def send_project_to_dotnet(from_bazis = True):
     with open(os.path.join(SCRIPT_DIR, INPUT_DATA), "r") as f:
         user_data = json.load(f)
     
     data = {
         "IdCompany": int(user_data["IdCompany"]),
         "IdUser": str(user_data["IdUser"]),
-        "ModelName": str(user_data["ModelName"]),
         "IdProject": str(user_data["IdProject"]),
         "Status": "success",
         "Message": "success"
     }
 
     files = []
-    for filename in os.listdir(SCRIPT_DIR):
-        file_path = os.path.join(SCRIPT_DIR, filename)
-        if os.path.isfile(file_path) and filename not in ['.gitignore', INPUT_DATA, INPUT_MODEL]:
-            files.append(('Files', (filename, open(file_path, 'rb'), 'application/octet-stream')))
+
+    if from_bazis:
+        data["ModelName"] = str(user_data["ModelName"])
+
+        for filename in os.listdir(SCRIPT_DIR):
+            file_path = os.path.join(SCRIPT_DIR, filename)
+            if os.path.isfile(file_path) and filename not in ['.gitignore', INPUT_DATA, INPUT_MODEL]:
+                files.append(('Files', (filename, open(file_path, 'rb'), 'application/octet-stream')))
+
+    else:
+        data["Status"] = 'file-bazis'
+        data["IdCalculation"] = str(user_data["IdCalculation"])
+
+        for filename in os.listdir(SCRIPT_DIR):
+            file_path = os.path.join(SCRIPT_DIR, filename)
+            if os.path.isfile(file_path) and filename == SUCCESS_FILE_TO_BAZIS:
+                files.append(('Files', (filename, open(file_path, 'rb'), 'application/octet-stream')))
+
 
     try:
-        # response = requests.post("http://localhost:8123/api/Projects/CreateProjectFromBazisService", # debug
-        response = requests.post("https://api.system123.ru/api/Projects/CreateProjectFromBazisService", # prod
+        response = requests.post(ENDPOINT, 
             data=data,
             files=files
         )
@@ -330,15 +399,19 @@ def main():
         log_folder_check()
 
         # we have only one worker so we can use FOR..IN here, otherwise we'd need to pick the oldest folder...
-        for folder_name in os.listdir(INPUT_DIR):
-            folder_path = os.path.join(INPUT_DIR, folder_name)
+        
+        # Check FROM BAZIS
+        for folder_name in os.listdir(INPUTS_FROM_BAZIS):
+            folder_path = os.path.join(INPUTS_FROM_BAZIS, folder_name)
 
             if os.path.isdir(folder_path):
-                log_message(f"\n\n\nFound folder to process: {folder_name}")
+                log_message(f"\n\n\n(from bazis) Found folder to process: {folder_name}")
                 log_message(f"Starting processing project...", IdProject=folder_name)
 
                 # move to processings
                 processing_path = os.path.join(PROCESSING_DIR, folder_name)
+                if os.path.exists(processing_path):
+                    shutil.rmtree(processing_path)
                 shutil.move(folder_path, processing_path)
                 log_message(f"Moved folder to processing: {processing_path}")
 
@@ -365,13 +438,66 @@ def main():
                     else:
                         log_message("Failed to send to .NET, moving to ERRORS", "ERROR", IdProject=folder_name, tg=True)
                         error_path = os.path.join(ERROR_DIR, folder_name)
+                        if os.path.exists(error_path):
+                            shutil.rmtree(error_path)
                         shutil.move(processing_path, error_path)
                         log_message(f"Moved to error folder: {error_path}")
                 else:
                     log_message("Failed to process folder, moving to ERRORS", "ERROR")
                     error_path = os.path.join(ERROR_DIR, folder_name)
+                    if os.path.exists(error_path):
+                        shutil.rmtree(error_path)
                     shutil.move(processing_path, error_path)
                     log_message(f"Moved to error folder: {error_path}")
+
+            time.sleep(1)
+        
+
+        # Check TO BAZIS
+        for folder_name in os.listdir(INPUTS_TO_BAZIS):
+            folder_path = os.path.join(INPUTS_TO_BAZIS, folder_name)
+
+            if os.path.isdir(folder_path):
+                log_message(f"\n\n\n(to bazis) Found folder to process: {folder_name}")
+                
+                id_project, id_calculation = folder_name.split('_')
+                log_message(f"Starting processing project...", IdProject=id_project)
+
+                # move to processings
+                processing_path = os.path.join(PROCESSING_DIR, folder_name)
+                if os.path.exists(processing_path):
+                    shutil.rmtree(processing_path)
+                shutil.move(folder_path, processing_path)
+                log_message(f"Moved folder to processing: {processing_path}")
+
+
+
+                if process_folder_to_bazis(processing_path, id_project, id_calculation):
+                    log_message("Folder processed successfully")
+
+                    log_message("(to bazis) Trying send to .NET ...")
+                    # Send to dotnet
+                    if send_project_to_dotnet(from_bazis=False):
+                        log_message("Data sent to .NET successfully", IdProject=id_project)
+                        shutil.rmtree(processing_path)
+                        log_message(f"Removed processing folder: {processing_path}")
+                    else:
+                        log_message("(to bazis) Failed to send to .NET, moving to ERRORS", "ERROR", IdProject=id_project, tg=True)
+                        error_path = os.path.join(ERROR_DIR, folder_name)
+                        if os.path.exists(error_path):
+                            shutil.rmtree(error_path)
+                        shutil.move(processing_path, error_path)
+                        log_message(f"Moved to error folder: {error_path}")
+                else:
+                    log_message("Failed to process folder, moving to ERRORS", "ERROR")
+                    error_path = os.path.join(ERROR_DIR, folder_name)
+                    if os.path.exists(error_path):
+                        shutil.rmtree(error_path)
+                    shutil.move(processing_path, error_path)
+                    log_message(f"Moved to error folder: {error_path}")
+
+
+
 
             time.sleep(1)
 

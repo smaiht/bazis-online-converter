@@ -9,6 +9,7 @@ LOG_DIR = "logs"
 FOLDER_CHECK_LOG = "last_folder_check.log"
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
+ENDPOINT = os.getenv('ENDPOINT')
 
 
 def send_tg(input):
@@ -19,7 +20,7 @@ def send_tg(input):
 
 def log_folder_check():
     current_time = datetime.now()
-    log_entry = f"Folder check: {current_time.strftime('%Y-%m-%d %H:%M:%S')}\n"
+    log_entry = f"Folders checked: {current_time.strftime('%Y-%m-%d %H:%M:%S')}\n"
     
     if not os.path.exists(LOG_DIR):
         os.makedirs(LOG_DIR)
@@ -45,8 +46,7 @@ def log_message(message, level="INFO", IdProject=None, tg=False):
         log_file.write(log_entry + "\n")
 
     if IdProject:
-        # response = requests.post("http://localhost:8123/api/Projects/CreateProjectFromBazisService", # debug
-        response = requests.post("https://api.system123.ru/api/Projects/CreateProjectFromBazisService", # prod
+        response = requests.post(ENDPOINT,
             data = {
                 "IdProject": str(IdProject),
                 "Status": str(level.lower()),
