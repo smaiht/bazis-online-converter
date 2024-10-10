@@ -172,12 +172,12 @@ def send_enter(hwnd):
     shell.SendKeys('{ENTER}')
 
 def kill_bazis(bazis_process):
-    # try:
-    #     bazis_process.terminate()
-    #     bazis_process.wait(timeout = 3)
-    # except subprocess.TimeoutExpired:
-    #     log_message('Bazis process did not terminate gracefully, forcing...')
-    #     bazis_process.kill()
+    try:
+        bazis_process.terminate()
+        bazis_process.wait(timeout = 3)
+    except subprocess.TimeoutExpired:
+        log_message('Bazis process did not terminate gracefully, forcing...')
+        bazis_process.kill()
     
     log_message('Bazis process terminated')
 
