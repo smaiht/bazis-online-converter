@@ -265,7 +265,7 @@ def process_folder(folder_path, pirate_mode, project_id):
                 return False
             
         if error_window:
-            log_message("Error reading file", level="ERROR", IdProject=project_id)
+            log_message("Error reading file", level="ERROR", IdProject=project_id, tg=True)
             kill_bazis(bazis_process)
             return False
 
