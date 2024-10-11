@@ -247,8 +247,9 @@ def process_folder(folder_path, pirate_mode, project_id):
     start_time = time.time()
 
     while time.time() - start_time < TIMEOUT:
+        hwnd, pirate_detected, error_window = find_bazis_window(bazis_process.pid)
+        
         if not pirate_mode:
-            hwnd, pirate_detected, error_window = find_bazis_window(bazis_process.pid)
             if hwnd:
                 log_message(f"Window found and ready: {win32gui.GetWindowText(hwnd)}")
                 activate_window(hwnd)
@@ -263,10 +264,10 @@ def process_folder(folder_path, pirate_mode, project_id):
                 kill_bazis(bazis_process)
                 return False
             
-            if error_window:
-                log_message("Error reading file", level="ERROR", IdProject=project_id)
-                kill_bazis(bazis_process)
-                return False
+        if error_window:
+            log_message("Error reading file", level="ERROR", IdProject=project_id)
+            kill_bazis(bazis_process)
+            return False
 
         if os.path.exists(os.path.join(SCRIPT_DIR, SUCCESS_FILE_FROM_BAZIS)):
             log_message(f"Converted successfully: {SUCCESS_FILE_FROM_BAZIS}", IdProject=project_id)
