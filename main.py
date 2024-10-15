@@ -165,11 +165,18 @@ def activate_window(hwnd):
         shell.AppActivate(window_title)
     time.sleep(0.5)
 
-def send_enter(hwnd):
+# def send_enter(hwnd):
+#     shell = win32com.client.Dispatch("WScript.Shell")
+#     shell.SendKeys('%') # Alt key
+#     time.sleep(0.1)
+#     shell.SendKeys('{ENTER}')
+
+def send_ctrl_s(hwnd):
     shell = win32com.client.Dispatch("WScript.Shell")
-    shell.SendKeys('%')  # Alt key
+    shell.SendKeys('%') # Alt key
+    win32gui.SetForegroundWindow(hwnd)
     time.sleep(0.1)
-    shell.SendKeys('{ENTER}')
+    shell.SendKeys('^s')
 
 def kill_bazis(bazis_process):
     try:
@@ -204,9 +211,10 @@ def remove_previous_data():
             log_message(f"Removed: {item_path}")
 
 def find_bazis_window(pid):
-    found_hwnd = [None]
-    pirate_window = [False]
-    error_window = [False]
+    license_window = [None]
+    pirate_window = [None]
+    error_window = [None]
+    main_window = [None]
 
     def enum_callback(hwnd, _):
         if win32gui.IsWindowVisible(hwnd) and win32gui.IsWindowEnabled(hwnd):
@@ -214,18 +222,23 @@ def find_bazis_window(pid):
             if found_pid == pid:
                 title = win32gui.GetWindowText(hwnd)
                 log_message(f"Found window with PID {pid}: {title}")
+
                 if 'Подключение к серверу лицензий Базис-Центра' in title or 'Connection to Bazis-Center license server' in title:
                     if win32gui.IsIconic(hwnd):
                         win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
-                    found_hwnd[0] = hwnd
+                    license_window[0] = hwnd
                     raise StopIteration
 
                 elif 'Открытие "пиратского" файла' in title or 'Pirate file opening' in title:
-                    pirate_window[0] = True
+                    pirate_window[0] = hwnd
                     raise StopIteration
 
                 elif 'Ошибка' in title or 'Error' in title:
-                    error_window[0] = True
+                    error_window[0] = hwnd
+                    raise StopIteration
+
+                elif 'БАЗИС' in title or 'Bazis' in title:
+                    main_window[0] = hwnd
                     raise StopIteration
                 
         return True
@@ -235,7 +248,7 @@ def find_bazis_window(pid):
     except StopIteration:
         pass
 
-    return found_hwnd[0], pirate_window[0], error_window[0]
+    return license_window[0], pirate_window[0], error_window[0], main_window[0]
 
 
 
@@ -247,17 +260,17 @@ def process_folder(folder_path, pirate_mode, project_id):
     start_time = time.time()
 
     while time.time() - start_time < TIMEOUT:
-        hwnd, pirate_detected, error_window = find_bazis_window(bazis_process.pid)
+        license_window, pirate_detected, error_window, main_window = find_bazis_window(bazis_process.pid)
         
         if not pirate_mode:
-            if hwnd:
-                log_message(f"Window found and ready: {win32gui.GetWindowText(hwnd)}")
-                activate_window(hwnd)
-                win32gui.PostMessage(hwnd, win32con.WM_KEYDOWN, win32con.VK_RETURN, 0)
-                win32gui.PostMessage(hwnd, win32con.WM_KEYUP, win32con.VK_RETURN, 0)
+            if license_window:
+                log_message(f"Window found and ready: {win32gui.GetWindowText(license_window)}")
+                activate_window(license_window)
+                win32gui.PostMessage(license_window, win32con.WM_KEYDOWN, win32con.VK_RETURN, 0)
+                win32gui.PostMessage(license_window, win32con.WM_KEYUP, win32con.VK_RETURN, 0)
                 log_message("Enter key sent (Authorized successfully?)")
-                new_hwnd, new_pirate_detected, new_error_window = find_bazis_window(bazis_process.pid)
-                log_message(f"Current window: {win32gui.GetWindowText(new_hwnd)}")
+                # new_license_window, new_pirate_detected, new_error_window, new_main_window = find_bazis_window(bazis_process.pid)
+                # log_message(f"Current window: {win32gui.GetWindowText(new_license_window)}")
 
             if pirate_detected:
                 log_message("Pirate file detected", level="PIRATE", IdProject=project_id)
@@ -292,20 +305,41 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
     start_time = time.time()
 
     while time.time() - start_time < TIMEOUT:
-        hwnd, pirate_detected, error_window = find_bazis_window(bazis_process.pid)
-        if hwnd:
-            log_message(f"Window found and ready: {win32gui.GetWindowText(hwnd)}")
-            activate_window(hwnd)
-            win32gui.PostMessage(hwnd, win32con.WM_KEYDOWN, win32con.VK_RETURN, 0)
-            win32gui.PostMessage(hwnd, win32con.WM_KEYUP, win32con.VK_RETURN, 0)
+        license_window, pirate_detected, error_window, main_window = find_bazis_window(bazis_process.pid)
+        if license_window:
+            log_message(f"Window found and ready: {win32gui.GetWindowText(license_window)}")
+            activate_window(license_window)
+            win32gui.PostMessage(license_window, win32con.WM_KEYDOWN, win32con.VK_RETURN, 0)
+            win32gui.PostMessage(license_window, win32con.WM_KEYUP, win32con.VK_RETURN, 0)
             log_message("Enter key sent (Authorized successfully?)")
-            new_hwnd, new_pirate_detected, new_error_window = find_bazis_window(bazis_process.pid)
-            log_message(f"Current window: {win32gui.GetWindowText(new_hwnd)}")
+            # new_license_window, new_pirate_detected, new_error_window, new_main_window = find_bazis_window(bazis_process.pid)
+            # log_message(f"Current window: {win32gui.GetWindowText(new_license_window)}")
 
         if error_window:
             log_message("Error reading file", level="ERROR", IdProject=id_project)
             kill_bazis(bazis_process)
             return False
+            
+        if os.path.exists(os.path.join(SCRIPT_DIR, 'flag-to-ctrl-s.json')):
+            log_message(f"Model recreated in Bazis successfully, trying to save...", IdProject=id_project)
+            
+            bazis_file_path = os.path.join(SCRIPT_DIR, "bazis-base-model.b3d")
+            initial_mod_time = os.path.getmtime(bazis_file_path)
+
+            new_license_window, new_pirate_detected, new_error_window, new_main_window = find_bazis_window(bazis_process.pid)
+            if new_main_window:
+                log_message(f"Main Bazis Window found: {win32gui.GetWindowText(new_main_window)}")
+                send_ctrl_s(new_main_window)
+                log_message("Ctrl+S sent to Bazis window")
+                time.sleep(1)
+                
+                new_mod_time = os.path.getmtime(bazis_file_path)
+                if new_mod_time > initial_mod_time:
+                    log_message(f"File successfully saved. Modification time changed from {initial_mod_time} to {new_mod_time}", IdProject=id_project)
+                    # Remove temporary files and rename to success bazis file
+                    os.remove(os.path.join(SCRIPT_DIR, 'flag-to-ctrl-s.json'))
+                    new_bazis_file_path = os.path.join(SCRIPT_DIR, SUCCESS_FILE_TO_BAZIS)
+                    os.rename(bazis_file_path, new_bazis_file_path)
             
         if os.path.exists(os.path.join(SCRIPT_DIR, SUCCESS_FILE_TO_BAZIS)):
             log_message(f"Converted successfully: {SUCCESS_FILE_TO_BAZIS}", IdProject=id_project)
@@ -464,14 +498,16 @@ def main():
                 id_project, id_calculation = folder_name.split('_')
                 log_message(f"Starting processing project...", IdProject=id_project)
 
-                # move to processings
                 processing_path = os.path.join(PROCESSING_DIR, folder_name)
+                # move to processings
                 if os.path.exists(processing_path):
                     shutil.rmtree(processing_path)
                 shutil.move(folder_path, processing_path)
                 log_message(f"Moved folder to processing: {processing_path}")
 
-
+                # copy base-bazis-model to processings
+                shutil.copy2("bazis-base-model.b3d", os.path.join(processing_path, "bazis-base-model.b3d"))
+                log_message("bazis-base-model has been copied to processings folder")
 
                 if process_folder_to_bazis(processing_path, id_project, id_calculation):
                     log_message("Folder processed successfully")

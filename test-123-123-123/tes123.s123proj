@@ -1,0 +1,1192 @@
+{
+  "virtual_objects": [],
+  "type": null,
+  "background_color": "",
+  "anchor_x": 2,
+  "anchor_y": 1,
+  "anchor_z": 2,
+  "offset": {
+    "x": 0.0,
+    "y": 0.0,
+    "z": 0.0
+  },
+  "normal": {
+    "x": 0.0,
+    "y": 0.0,
+    "z": 0.0
+  },
+  "user_data": null,
+  "graph": {
+    "inputs": [],
+    "outputs": [],
+    "nodes": [],
+    "related_inputs": {},
+    "comments": [],
+    "is_active": true,
+    "position": {
+      "x": 0.0,
+      "y": 0.0
+    },
+    "scale": 1.0
+  },
+  "components": [
+    {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      },
+      "size": {
+        "x": 1200.0,
+        "y": 2600.0,
+        "z": 16.0
+      },
+      "material": null,
+      "color": null,
+      "ignore_bounds": false,
+      "bake": null,
+      "modifier": {
+        "cut_angle1": 0.0,
+        "cut_angle2": 0.0,
+        "back_material": null,
+        "back_material_content": {
+          "color": "#fff",
+          "name": "",
+          "diffuse": {
+            "fileName": null,
+            "realSize": {
+              "x": 1.0,
+              "y": 1.0
+            }
+          },
+          "normal": {
+            "fileName": null,
+            "realSize": {
+              "x": 1.0,
+              "y": 1.0
+            }
+          },
+          "alpha": {
+            "fileName": null,
+            "realSize": {
+              "x": 1.0,
+              "y": 1.0
+            }
+          },
+          "metallic": {
+            "fileName": null,
+            "realSize": {
+              "x": 1.0,
+              "y": 1.0
+            }
+          },
+          "roughness": {
+            "fileName": null,
+            "realSize": {
+              "x": 1.0,
+              "y": 1.0
+            }
+          },
+          "opacity": 1.0,
+          "realSize": {
+            "x": 1.0,
+            "y": 1.0
+          },
+          "previewColor": null,
+          "category": ""
+        },
+        "edges": [
+          {
+            "type": 0,
+            "material": null,
+            "material_content": {
+              "color": "#fff",
+              "name": "",
+              "diffuse": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "normal": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "alpha": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "metallic": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "roughness": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "opacity": 1.0,
+              "realSize": {
+                "x": 1.0,
+                "y": 1.0
+              },
+              "previewColor": null,
+              "category": ""
+            },
+            "size": {
+              "x": 16.0,
+              "y": 2600.0,
+              "z": 0.0
+            }
+          },
+          {
+            "type": 0,
+            "material": null,
+            "material_content": {
+              "color": "#fff",
+              "name": "",
+              "diffuse": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "normal": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "alpha": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "metallic": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "roughness": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "opacity": 1.0,
+              "realSize": {
+                "x": 1.0,
+                "y": 1.0
+              },
+              "previewColor": null,
+              "category": ""
+            },
+            "size": {
+              "x": 16.0,
+              "y": 1200.0,
+              "z": 0.0
+            }
+          },
+          {
+            "type": 0,
+            "material": null,
+            "material_content": {
+              "color": "#fff",
+              "name": "",
+              "diffuse": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "normal": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "alpha": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "metallic": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "roughness": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "opacity": 1.0,
+              "realSize": {
+                "x": 1.0,
+                "y": 1.0
+              },
+              "previewColor": null,
+              "category": ""
+            },
+            "size": {
+              "x": 16.0,
+              "y": 2600.0,
+              "z": 0.0
+            }
+          },
+          {
+            "type": 0,
+            "material": null,
+            "material_content": {
+              "color": "#fff",
+              "name": "",
+              "diffuse": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "normal": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "alpha": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "metallic": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "roughness": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "opacity": 1.0,
+              "realSize": {
+                "x": 1.0,
+                "y": 1.0
+              },
+              "previewColor": null,
+              "category": ""
+            },
+            "size": {
+              "x": 16.0,
+              "y": 1200.0,
+              "z": 0.0
+            }
+          }
+        ],
+        "real_size": {
+          "x": 1200.0,
+          "y": 2600.0,
+          "z": 16.0
+        },
+        "type": 9
+      },
+      "processings": [],
+      "is_active": true,
+      "max_texture_size": 512,
+      "build_order": 1,
+      "detailing_order": 1,
+      "order": 1,
+      "user_data": null,
+      "component_type": "component",
+      "description": null,
+      "disassemble_multiplier": 1.0,
+      "positioning_points": [
+        {
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "anchor_x": 3,
+          "anchor_y": 3,
+          "anchor_z": 3,
+          "get_from_modifier": false,
+          "name": "Точка 1",
+          "path": "Точки",
+          "guid": "9488ff74-8110-4aa9-a64d-5015e468dcd8"
+        },
+        {
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "anchor_x": 3,
+          "anchor_y": 1,
+          "anchor_z": 3,
+          "get_from_modifier": false,
+          "name": "Точка 3",
+          "path": "Точки",
+          "guid": "ef2665bf-ed5e-42c3-bf05-11094bbd108d"
+        }
+      ],
+      "material_content": {
+        "color": "#fff",
+        "name": "",
+        "diffuse": {
+          "fileName": null,
+          "realSize": {
+            "x": 1.0,
+            "y": 1.0
+          }
+        },
+        "normal": {
+          "fileName": null,
+          "realSize": {
+            "x": 1.0,
+            "y": 1.0
+          }
+        },
+        "alpha": {
+          "fileName": null,
+          "realSize": {
+            "x": 1.0,
+            "y": 1.0
+          }
+        },
+        "metallic": {
+          "fileName": null,
+          "realSize": {
+            "x": 1.0,
+            "y": 1.0
+          }
+        },
+        "roughness": {
+          "fileName": null,
+          "realSize": {
+            "x": 1.0,
+            "y": 1.0
+          }
+        },
+        "opacity": 1.0,
+        "realSize": {
+          "x": 1.0,
+          "y": 1.0
+        },
+        "previewColor": null,
+        "category": ""
+      },
+      "name": "Деталь 1",
+      "path": "Детали",
+      "guid": "8ceb2c7b-43eb-4342-b47e-1a345bd50c4d"
+    },
+    {
+      "position": {
+        "x": 0.0,
+        "y": -1308.00012,
+        "z": 1308.00012
+      },
+      "rotation": {
+        "x": 0.7071068,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.7071068
+      },
+      "size": {
+        "x": 1200.0,
+        "y": 2600.0,
+        "z": 16.0
+      },
+      "material": null,
+      "color": null,
+      "ignore_bounds": false,
+      "bake": null,
+      "modifier": {
+        "cut_angle1": 0.0,
+        "cut_angle2": 0.0,
+        "back_material": null,
+        "back_material_content": {
+          "color": "#fff",
+          "name": "",
+          "diffuse": {
+            "fileName": null,
+            "realSize": {
+              "x": 1.0,
+              "y": 1.0
+            }
+          },
+          "normal": {
+            "fileName": null,
+            "realSize": {
+              "x": 1.0,
+              "y": 1.0
+            }
+          },
+          "alpha": {
+            "fileName": null,
+            "realSize": {
+              "x": 1.0,
+              "y": 1.0
+            }
+          },
+          "metallic": {
+            "fileName": null,
+            "realSize": {
+              "x": 1.0,
+              "y": 1.0
+            }
+          },
+          "roughness": {
+            "fileName": null,
+            "realSize": {
+              "x": 1.0,
+              "y": 1.0
+            }
+          },
+          "opacity": 1.0,
+          "realSize": {
+            "x": 1.0,
+            "y": 1.0
+          },
+          "previewColor": null,
+          "category": ""
+        },
+        "edges": [
+          {
+            "type": 0,
+            "material": null,
+            "material_content": {
+              "color": "#fff",
+              "name": "",
+              "diffuse": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "normal": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "alpha": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "metallic": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "roughness": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "opacity": 1.0,
+              "realSize": {
+                "x": 1.0,
+                "y": 1.0
+              },
+              "previewColor": null,
+              "category": ""
+            },
+            "size": {
+              "x": 16.0,
+              "y": 2600.0,
+              "z": 0.0
+            }
+          },
+          {
+            "type": 0,
+            "material": null,
+            "material_content": {
+              "color": "#fff",
+              "name": "",
+              "diffuse": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "normal": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "alpha": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "metallic": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "roughness": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "opacity": 1.0,
+              "realSize": {
+                "x": 1.0,
+                "y": 1.0
+              },
+              "previewColor": null,
+              "category": ""
+            },
+            "size": {
+              "x": 16.0,
+              "y": 1200.0,
+              "z": 0.0
+            }
+          },
+          {
+            "type": 0,
+            "material": null,
+            "material_content": {
+              "color": "#fff",
+              "name": "",
+              "diffuse": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "normal": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "alpha": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "metallic": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "roughness": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "opacity": 1.0,
+              "realSize": {
+                "x": 1.0,
+                "y": 1.0
+              },
+              "previewColor": null,
+              "category": ""
+            },
+            "size": {
+              "x": 16.0,
+              "y": 2600.0,
+              "z": 0.0
+            }
+          },
+          {
+            "type": 0,
+            "material": null,
+            "material_content": {
+              "color": "#fff",
+              "name": "",
+              "diffuse": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "normal": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "alpha": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "metallic": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "roughness": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "opacity": 1.0,
+              "realSize": {
+                "x": 1.0,
+                "y": 1.0
+              },
+              "previewColor": null,
+              "category": ""
+            },
+            "size": {
+              "x": 16.0,
+              "y": 1200.0,
+              "z": 0.0
+            }
+          }
+        ],
+        "real_size": {
+          "x": 1200.0,
+          "y": 2600.0,
+          "z": 16.0
+        },
+        "type": 9
+      },
+      "processings": [],
+      "is_active": true,
+      "max_texture_size": 512,
+      "build_order": 2,
+      "detailing_order": 2,
+      "order": 2,
+      "user_data": null,
+      "component_type": "component",
+      "description": null,
+      "disassemble_multiplier": 1.0,
+      "positioning_points": [
+        {
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "anchor_x": 3,
+          "anchor_y": 1,
+          "anchor_z": 1,
+          "get_from_modifier": false,
+          "name": "Точка 4",
+          "path": "Точки",
+          "guid": "e9b812bc-0951-4905-9c59-dedc4826290c"
+        }
+      ],
+      "material_content": {
+        "color": "#fff",
+        "name": "",
+        "diffuse": {
+          "fileName": null,
+          "realSize": {
+            "x": 1.0,
+            "y": 1.0
+          }
+        },
+        "normal": {
+          "fileName": null,
+          "realSize": {
+            "x": 1.0,
+            "y": 1.0
+          }
+        },
+        "alpha": {
+          "fileName": null,
+          "realSize": {
+            "x": 1.0,
+            "y": 1.0
+          }
+        },
+        "metallic": {
+          "fileName": null,
+          "realSize": {
+            "x": 1.0,
+            "y": 1.0
+          }
+        },
+        "roughness": {
+          "fileName": null,
+          "realSize": {
+            "x": 1.0,
+            "y": 1.0
+          }
+        },
+        "opacity": 1.0,
+        "realSize": {
+          "x": 1.0,
+          "y": 1.0
+        },
+        "previewColor": null,
+        "category": ""
+      },
+      "name": "Деталь 2",
+      "path": "Детали",
+      "guid": "b7e20b32-66c2-47ed-bd31-f61dc48b67ef"
+    },
+    {
+      "position": {
+        "x": 592.000061,
+        "y": 1200.0,
+        "z": 608.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.7071068,
+        "z": 0.0,
+        "w": 0.7071068
+      },
+      "size": {
+        "x": 1200.0,
+        "y": 200.0,
+        "z": 16.0
+      },
+      "material": null,
+      "color": null,
+      "ignore_bounds": false,
+      "bake": null,
+      "modifier": {
+        "cut_angle1": 0.0,
+        "cut_angle2": 0.0,
+        "back_material": null,
+        "back_material_content": {
+          "color": "#fff",
+          "name": "",
+          "diffuse": {
+            "fileName": null,
+            "realSize": {
+              "x": 1.0,
+              "y": 1.0
+            }
+          },
+          "normal": {
+            "fileName": null,
+            "realSize": {
+              "x": 1.0,
+              "y": 1.0
+            }
+          },
+          "alpha": {
+            "fileName": null,
+            "realSize": {
+              "x": 1.0,
+              "y": 1.0
+            }
+          },
+          "metallic": {
+            "fileName": null,
+            "realSize": {
+              "x": 1.0,
+              "y": 1.0
+            }
+          },
+          "roughness": {
+            "fileName": null,
+            "realSize": {
+              "x": 1.0,
+              "y": 1.0
+            }
+          },
+          "opacity": 1.0,
+          "realSize": {
+            "x": 1.0,
+            "y": 1.0
+          },
+          "previewColor": null,
+          "category": ""
+        },
+        "edges": [
+          {
+            "type": 0,
+            "material": null,
+            "material_content": {
+              "color": "#fff",
+              "name": "",
+              "diffuse": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "normal": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "alpha": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "metallic": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "roughness": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "opacity": 1.0,
+              "realSize": {
+                "x": 1.0,
+                "y": 1.0
+              },
+              "previewColor": null,
+              "category": ""
+            },
+            "size": {
+              "x": 16.0,
+              "y": 200.0,
+              "z": 0.0
+            }
+          },
+          {
+            "type": 0,
+            "material": null,
+            "material_content": {
+              "color": "#fff",
+              "name": "",
+              "diffuse": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "normal": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "alpha": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "metallic": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "roughness": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "opacity": 1.0,
+              "realSize": {
+                "x": 1.0,
+                "y": 1.0
+              },
+              "previewColor": null,
+              "category": ""
+            },
+            "size": {
+              "x": 16.0,
+              "y": 1200.0,
+              "z": 0.0
+            }
+          },
+          {
+            "type": 0,
+            "material": null,
+            "material_content": {
+              "color": "#fff",
+              "name": "",
+              "diffuse": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "normal": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "alpha": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "metallic": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "roughness": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "opacity": 1.0,
+              "realSize": {
+                "x": 1.0,
+                "y": 1.0
+              },
+              "previewColor": null,
+              "category": ""
+            },
+            "size": {
+              "x": 16.0,
+              "y": 200.0,
+              "z": 0.0
+            }
+          },
+          {
+            "type": 0,
+            "material": null,
+            "material_content": {
+              "color": "#fff",
+              "name": "",
+              "diffuse": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "normal": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "alpha": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "metallic": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "roughness": {
+                "fileName": null,
+                "realSize": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              "opacity": 1.0,
+              "realSize": {
+                "x": 1.0,
+                "y": 1.0
+              },
+              "previewColor": null,
+              "category": ""
+            },
+            "size": {
+              "x": 16.0,
+              "y": 1200.0,
+              "z": 0.0
+            }
+          }
+        ],
+        "real_size": {
+          "x": 1200.0,
+          "y": 200.0,
+          "z": 16.0
+        },
+        "type": 9
+      },
+      "processings": [],
+      "is_active": true,
+      "max_texture_size": 512,
+      "build_order": 3,
+      "detailing_order": 3,
+      "order": 3,
+      "user_data": null,
+      "component_type": "component",
+      "description": null,
+      "disassemble_multiplier": 1.0,
+      "positioning_points": [
+        {
+          "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "anchor_x": 3,
+          "anchor_y": 3,
+          "anchor_z": 3,
+          "get_from_modifier": false,
+          "name": "Точка 2",
+          "path": "Точки",
+          "guid": "22b6ffb5-73b1-433a-b97f-b3b7876accb5"
+        }
+      ],
+      "material_content": {
+        "color": "#fff",
+        "name": "",
+        "diffuse": {
+          "fileName": null,
+          "realSize": {
+            "x": 1.0,
+            "y": 1.0
+          }
+        },
+        "normal": {
+          "fileName": null,
+          "realSize": {
+            "x": 1.0,
+            "y": 1.0
+          }
+        },
+        "alpha": {
+          "fileName": null,
+          "realSize": {
+            "x": 1.0,
+            "y": 1.0
+          }
+        },
+        "metallic": {
+          "fileName": null,
+          "realSize": {
+            "x": 1.0,
+            "y": 1.0
+          }
+        },
+        "roughness": {
+          "fileName": null,
+          "realSize": {
+            "x": 1.0,
+            "y": 1.0
+          }
+        },
+        "opacity": 1.0,
+        "realSize": {
+          "x": 1.0,
+          "y": 1.0
+        },
+        "previewColor": null,
+        "category": ""
+      },
+      "name": "Деталь 3",
+      "path": "Детали",
+      "guid": "f96aea39-3032-42bf-8407-91a5d71e3323"
+    }
+  ],
+  "connection_points": [
+    {
+      "point1": "Детали/Деталь 1/Точки/Точка 1",
+      "point2": "Детали/Деталь 3/Точки/Точка 2",
+      "name": "Связь01Деталь 1_Деталь 3",
+      "path": "Связи",
+      "guid": "a303c040-cd98-4f31-bee6-0cca386d32ee"
+    },
+    {
+      "point1": "Детали/Деталь 1/Точки/Точка 3",
+      "point2": "Детали/Деталь 2/Точки/Точка 4",
+      "name": "Связь02Деталь 1_Деталь 2",
+      "path": "Связи",
+      "guid": "79b0460c-16d1-4260-883a-792d616494a8"
+    }
+  ]
+}

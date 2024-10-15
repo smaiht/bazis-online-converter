@@ -3,24 +3,28 @@
 const content = fs.readFileSync('results/project.s123proj', 'utf8');
 system.sleep(500);
 
-Action.LoadModel('bazis-base-model.b3d');
+Action.LoadModel('results/bazis-base-model.b3d');
 system.sleep(500);
 
 let project = JSON.parse(content);
 
-// for (var item of project.components) {
+for (var item of project.components) {
 
-for (let kk = 0; kk <= project.components.length; kk++) {
-    if (kk === project.components.length) {
-        SetCamera(p3dLeft);
-        Action.DS.ViewAll();
-        system.sleep(500);
-        Action.SaveModel('results/bazis.b3d');
-        console.log("Модель сохранена");
-        break;
-    }
+// for (let kk = 0; kk <= project.components.length; kk++) {
+//     if (kk === project.components.length) {
+//         system.sleep(500);
 
-    let item = project.components[kk];
+//         SetCamera(p3dLeft);
+//         Action.DS.ViewAll();
+//         system.sleep(500);
+
+//         Action.SaveModel('results/bazis.b3d');
+//         console.log("Модель сохранена");
+
+//         break;
+//     }
+
+//     let item = project.components[kk];
 
     system.sleep(10);
     if (item.is_active) {
@@ -43,7 +47,6 @@ for (let kk = 0; kk <= project.components.length; kk++) {
             RealPart: item.rotation.w
         };
 
-
         var prop1 = newItem.GabMax;
         var prop2 = newItem.GabMin;
 
@@ -58,29 +61,25 @@ for (let kk = 0; kk <= project.components.length; kk++) {
             item.position.z
         );
 
-        if (item.modifier.type == 9) { //если это ЛДСП
-
+        if (item.modifier.type == 9) { // если это ЛДСП
             var Pan = newItem;
             var i = 3;
             item.modifier.edges.forEach(edge => {
-
                 if (edge.type != 0) {
-
-                    var Butt = Pan.Butts.Add(); //говорит о том что намерены установить кромку методо Butts и спомащью его свойст.
-                    Butt.ElemIndex = i; //кромящаяся сторона
-                    Butt.ClipPanel = true; //подрезка
-                    Butt.Material = "Кромка " + (edge.material_content.name ? edge.material_content.name : "") + " \rXX"; //наименование кромки \r артикул
-                    Butt.Sign = (edge.material_content.name ? edge.material_content.name : "") + " " + edge.size.z + "/" + item.size.z; //16; //обозначение кромки
-                    Butt.Thickness = (edge.size.z); //(2); //толщена кромки
-
+                    var Butt = Pan.Butts.Add(); // говорит о том что намерены установить кромку методо Butts и спомащью его свойст.
+                    Butt.ElemIndex = i; // кромящаяся сторона
+                    Butt.ClipPanel = true; // подрезка
+                    Butt.Material = "Кромка " + (edge.material_content.name ? edge.material_content.name : "") + " \rXX"; // наименование кромки \r артикул
+                    Butt.Sign = (edge.material_content.name ? edge.material_content.name : "") + " " + edge.size.z + "/" + item.size.z; // 16; // обозначение кромки
+                    Butt.Thickness = (edge.size.z); // (2); // толщина кромки
                 };
 
                 i = i - 1;
-
             });
-
         };
-        newItem.Build();
 
+        newItem.Build();
     };
 };
+
+fs.writeFileSync('results/flag-to-ctrl-s.json', JSON.stringify('ready', null, 2));
