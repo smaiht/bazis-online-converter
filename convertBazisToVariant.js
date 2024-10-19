@@ -2011,6 +2011,19 @@ function createComponent(obj, index, parentRotation = null) {
 
 
 
+let usedInputNames = {}
+function generateUniqueInputName(baseName, type) {
+    let idx = 0;
+    let inputName;
+    do {
+        inputName = `${baseName}${idx > 0 ? idx : ''} ${type}`;
+        idx++;
+    } while (usedInputNames[inputName]);
+
+    usedInputNames[inputName] = true;
+    return inputName;
+}
+
 
 
 
@@ -2111,7 +2124,8 @@ function processLevel(
                 axisEnd = newPositions.axisEnd
                 let doorAngle = newPositions.doorAngle
                 
-                inputName = `${item.Name} Поворот`
+                // inputName = `${item.Name} Поворот`
+                inputName = generateUniqueInputName(item.Name, "Поворот")
                 const newInput = createRotateInput(inputName, doorAngle)
                 inputs.push(newInput)
 
@@ -2129,7 +2143,8 @@ function processLevel(
 
                 let offset = {min: 0, max: 100}
 
-                inputName = `${item.Name} Смещение`
+                // inputName = `${item.Name} Смещение`
+                inputName = generateUniqueInputName(item.Name, "Смещение")
                 const newInput = createTranslateInput(inputName, offset)
                 inputs.push(newInput)
             }
@@ -2350,6 +2365,7 @@ let angleStep = 360 / 32;
 for (let i = 0; i < 32; i++) {
     let newAngleY = initialAngleY + (i * angleStep);
     SetCamera(p3dLeft) // always set this shit first, so we could make multiple screenshot from diff angles. Otherwise the script freeezes and all screenshots are the same
+    Action.DS.Camera.AngleX = 20;
     Action.DS.Camera.AngleY = newAngleY;
     Action.Control.SavePicture(`results/sequence_${i}.jpg`);
 }
