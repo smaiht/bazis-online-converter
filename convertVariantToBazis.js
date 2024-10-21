@@ -33,7 +33,7 @@ for (var item of project.components) {
         newItem.SetDefaultTransform();
         newItem.Thickness = item.size.z;
         newItem.TextureOrientation = ftoVertical; //2 == ftoVertical
-        newItem.MaterialName = item.material_content.name;
+        newItem.MaterialName = item.material_content ? item.material_content.name : "Материал не указан";
         newItem.Name = item.name;
         newItem.ArtPos = item.order;
         newItem.Build();
@@ -69,8 +69,8 @@ for (var item of project.components) {
                     var Butt = Pan.Butts.Add(); // говорит о том что намерены установить кромку методо Butts и спомащью его свойст.
                     Butt.ElemIndex = i; // кромящаяся сторона
                     Butt.ClipPanel = true; // подрезка
-                    Butt.Material = "Кромка " + (edge.material_content.name ? edge.material_content.name : "") + " \rXX"; // наименование кромки \r артикул
-                    Butt.Sign = (edge.material_content.name ? edge.material_content.name : "") + " " + edge.size.z + "/" + item.size.z; // 16; // обозначение кромки
+                    Butt.Material = "Кромка " + ( (edge.material_content && edge.material_content.name) ? edge.material_content.name : "") + " \rXX"; // наименование кромки \r артикул
+                    Butt.Sign = ( (edge.material_content && edge.material_content.name) ? edge.material_content.name : "") + " " + edge.size.z + "/" + item.size.z; // 16; // обозначение кромки
                     Butt.Thickness = (edge.size.z); // (2); // толщина кромки
                 };
 

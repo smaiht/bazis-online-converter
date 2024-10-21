@@ -237,7 +237,7 @@ def find_bazis_window(pid):
                     error_window[0] = hwnd
                     raise StopIteration
 
-                elif 'БАЗИС' in title or 'Bazis' in title:
+                elif 'БАЗИС' in title or 'BAZIS' in title:
                     main_window[0] = hwnd
                     raise StopIteration
                 
