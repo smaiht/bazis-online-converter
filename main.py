@@ -397,6 +397,9 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
                 log_message("keyboard lib команды Save sent to Bazis window")
                 time.sleep(1)
 
+                save_bazis_file3(new_main_window)
+                log_message("SendInput команды Save sent to Bazis window")
+                time.sleep(1)
                 
                 new_mod_time = os.path.getmtime(bazis_file_path)
                 log_message(f"new_mod_time: {new_mod_time} > initial_mod_time: {new_mod_time > initial_mod_time}")
@@ -469,6 +472,81 @@ def save_bazis_file2(hwnd):
             log_message("Backup save command sent via WM_COMMAND")
         except Exception as e2:
             log_message(f"Error in backup save: {str(e2)}")
+
+def save_bazis_file3(hwnd):
+    import ctypes
+    from ctypes import wintypes
+    
+    # Определяем структуры для SendInput
+    KEYEVENTF_KEYUP = 0x0002
+    INPUT_KEYBOARD = 1
+
+    PUL = ctypes.POINTER(ctypes.c_ulong)
+    class KeyBdInput(ctypes.Structure):
+        _fields_ = [("wVk", ctypes.c_ushort),
+                   ("wScan", ctypes.c_ushort),
+                   ("dwFlags", ctypes.c_ulong),
+                   ("time", ctypes.c_ulong),
+                   ("dwExtraInfo", PUL)]
+
+    class HardwareInput(ctypes.Structure):
+        _fields_ = [("uMsg", ctypes.c_ulong),
+                   ("wParamL", ctypes.c_short),
+                   ("wParamH", ctypes.c_ushort)]
+
+    class MouseInput(ctypes.Structure):
+        _fields_ = [("dx", ctypes.c_long),
+                   ("dy", ctypes.c_long),
+                   ("mouseData", ctypes.c_ulong),
+                   ("dwFlags", ctypes.c_ulong),
+                   ("time",ctypes.c_ulong),
+                   ("dwExtraInfo", PUL)]
+
+    class Input_I(ctypes.Union):
+        _fields_ = [("ki", KeyBdInput),
+                   ("mi", MouseInput),
+                   ("hi", HardwareInput)]
+
+    class Input(ctypes.Structure):
+        _fields_ = [("type", ctypes.c_ulong),
+                   ("ii", Input_I)]
+
+    def press_key(hexKeyCode):
+        extra = ctypes.c_ulong(0)
+        ii_ = Input_I()
+        ii_.ki = KeyBdInput(hexKeyCode, 0x48, 0, 0, ctypes.pointer(extra))
+        x = Input(ctypes.c_ulong(1), ii_)
+        ctypes.windll.user32.SendInput(1, ctypes.pointer(x), ctypes.sizeof(x))
+
+    def release_key(hexKeyCode):
+        extra = ctypes.c_ulong(0)
+        ii_ = Input_I()
+        ii_.ki = KeyBdInput(hexKeyCode, 0x48, KEYEVENTF_KEYUP, 0, ctypes.pointer(extra))
+        x = Input(ctypes.c_ulong(1), ii_)
+        ctypes.windll.user32.SendInput(1, ctypes.pointer(x), ctypes.sizeof(x))
+
+    # Активируем окно
+    shell = win32com.client.Dispatch("WScript.Shell")
+    window_title = win32gui.GetWindowText(hwnd)
+    shell.AppActivate(window_title)
+    time.sleep(0.5)
+
+    try:
+        # Нажимаем Ctrl
+        press_key(0x11)  # VK_CONTROL
+        time.sleep(0.1)
+        # Нажимаем S
+        press_key(0x53)  # VK_S
+        time.sleep(0.1)
+        # Отпускаем S
+        release_key(0x53)
+        time.sleep(0.1)
+        # Отпускаем Ctrl
+        release_key(0x11)
+        
+        log_message("SendInput save command sent")
+    except Exception as e:
+        log_message(f"Error in SendInput save: {str(e)}")
 
 
 def insert_material_folders():
