@@ -358,16 +358,43 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
                 shell = win32com.client.Dispatch("WScript.Shell")
                 
                 activate_window(new_main_window)
-                time.sleep(0.2)
+                time.sleep(1)
                 
                 # Отправляем Ctrl+S через SendKeys
                 shell.SendKeys('^s')
                 log_message("shell Ctrl+S sent to Bazis window")
-                time.sleep(0.2)
+                time.sleep(1)
 
                 time.sleep(0.2)
+
+
+    
+                # Получаем scan code для 'S'
+                scan_code = win32api.MapVirtualKey(ord('S'), 0)
+                
+                # Зажимаем Ctrl
+                win32gui.PostMessage(new_main_window, win32con.WM_KEYDOWN, win32con.VK_CONTROL, 0)
+                time.sleep(0.1)
+                
+                # Нажимаем S с правильным scan code
+                lparam = (scan_code << 16) | 1
+                win32gui.PostMessage(new_main_window, win32con.WM_KEYDOWN, ord('S'), lparam)
+                time.sleep(0.1)
+                win32gui.PostMessage(new_main_window, win32con.WM_KEYUP, ord('S'), lparam | 0xC0000000)
+                
+                time.sleep(0.1)
+                win32gui.PostMessage(new_main_window, win32con.WM_KEYUP, win32con.VK_CONTROL, 0)
+
+                log_message("postmessage Ctrl+S sent to Bazis window")
+                time.sleep(1)
+
 
                 save_bazis_file(new_main_window)
+                log_message("Стандартный ID для команды Save в Windows sent to Bazis window")
+                time.sleep(1)
+
+                save_bazis_file2(new_main_window)
+                log_message("keyboard lib команды Save sent to Bazis window")
                 time.sleep(1)
 
                 
@@ -395,86 +422,53 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
 
 
 def save_bazis_file(hwnd):
-
-    # Стандартная команда Save в Windows
+    # Константы для команды Save
     WM_COMMAND = 0x0111
-    ID_FILE_SAVE = 0xE103
-    win32gui.PostMessage(hwnd, WM_COMMAND, ID_FILE_SAVE, 0)
+    ID_FILE_SAVE = 0xE103  # Стандартный ID для команды Save в Windows
 
+    log_message(f"Trying to save file through WM_COMMAND...")
+    try:
+        # Отправляем команду Save напрямую окну
+        win32gui.PostMessage(hwnd, WM_COMMAND, ID_FILE_SAVE, 0)
+        log_message("Save command sent successfully")
+        return True
+    except Exception as e:
+        log_message(f"Error sending save command: {str(e)}")
+        return False
 
+def save_bazis_file2(hwnd):
+    try:
+        import keyboard
+        log_message("Trying to save using keyboard library...")
+        
+        # Активируем окно более мягким способом
+        shell = win32com.client.Dispatch("WScript.Shell")
+        window_title = win32gui.GetWindowText(hwnd)
+        shell.AppActivate(window_title)
+        time.sleep(0.5)
 
-    # Скан-коды клавиш
-    VK_CONTROL = 0x11
-    VK_S = 0x53
-    
-    # Формируем LPARAM для скан-кодов
-    KEYEVENTF_KEYUP = 0x0002
-    scan_ctrl = win32api.MapVirtualKey(VK_CONTROL, 0)
-    scan_s = win32api.MapVirtualKey(VK_S, 0)
-    
-    # Нажимаем Ctrl
-    win32gui.PostMessage(hwnd, win32con.WM_KEYDOWN, VK_CONTROL, scan_ctrl)
-    # Нажимаем S
-    win32gui.PostMessage(hwnd, win32con.WM_KEYDOWN, VK_S, scan_s)
-    # Отпускаем S
-    win32gui.PostMessage(hwnd, win32con.WM_KEYUP, VK_S, scan_s | (KEYEVENTF_KEYUP << 30))
-    # Отпускаем Ctrl
-    win32gui.PostMessage(hwnd, win32con.WM_KEYUP, VK_CONTROL, scan_ctrl | (KEYEVENTF_KEYUP << 30))
-
-
-
-
-
-
-    import ctypes
-    from ctypes import wintypes
-    
-    user32 = ctypes.WinDLL('user32', use_last_error=True)
-    INPUT_KEYBOARD = 1
-    KEYEVENTF_KEYUP = 0x0002
-    
-    # Структура для INPUT
-    class KEYBDINPUT(ctypes.Structure):
-        _fields_ = (("wVk", wintypes.WORD),
-                   ("wScan", wintypes.WORD),
-                   ("dwFlags", wintypes.DWORD),
-                   ("time", wintypes.DWORD),
-                   ("dwExtraInfo", ctypes.POINTER(ctypes.c_ulong)))
-    
-    class INPUT(ctypes.Structure):
-        _fields_ = (("type", wintypes.DWORD),
-                   ("ki", KEYBDINPUT))
-    
-    def send_key(vk, down):
-        inp = INPUT(type=INPUT_KEYBOARD,
-                   ki=KEYBDINPUT(wVk=vk,
-                                wScan=0,
-                                dwFlags=KEYEVENTF_KEYUP if not down else 0,
-                                time=0,
-                                dwExtraInfo=None))
-        user32.SendInput(1, ctypes.byref(inp), ctypes.sizeof(inp))
-    
-    # Активируем окно
-    win32gui.SetForegroundWindow(hwnd)
-    time.sleep(0.1)
-    
-    # Нажимаем Ctrl+S
-    send_key(0x11, True)  # Ctrl down
-    time.sleep(0.1)
-    send_key(0x53, True)  # S down
-    time.sleep(0.1)
-    send_key(0x53, False)  # S up
-    time.sleep(0.1)
-    send_key(0x11, False)  # Ctrl up
-
-
-
-    # Открываем меню File
-    win32gui.PostMessage(hwnd, win32con.WM_SYSCOMMAND, win32con.SC_KEYMENU, ord('F'))
-    time.sleep(0.1)
-    # Нажимаем S для Save
-    win32gui.PostMessage(hwnd, win32con.WM_CHAR, ord('S'), 0)
-
+        # Эмулируем нажатие Ctrl+S
+        keyboard.press('ctrl')
+        time.sleep(0.1)
+        keyboard.press('s')
+        time.sleep(0.1)
+        keyboard.release('s')
+        time.sleep(0.1)
+        keyboard.release('ctrl')
+        
+        log_message("Keyboard save command sent")
+        
+    except Exception as e:
+        log_message(f"Error in keyboard save: {str(e)}")
+        
+        # Запасной вариант - через WM_COMMAND
+        try:
+            WM_COMMAND = 0x0111
+            ID_FILE_SAVE = 0xE103
+            win32gui.PostMessage(hwnd, WM_COMMAND, ID_FILE_SAVE, 0)
+            log_message("Backup save command sent via WM_COMMAND")
+        except Exception as e2:
+            log_message(f"Error in backup save: {str(e2)}")
 
 
 def insert_material_folders():
