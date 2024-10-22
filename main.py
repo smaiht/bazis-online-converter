@@ -427,7 +427,9 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
     kill_bazis(bazis_process)
 
     return False
-
+    
+import ctypes
+from ctypes import wintypes
 def find_save_button_bazis(hwnd):
     def enum_toolbar_buttons(toolbar_hwnd):
         # Получаем информацию о кнопках тулбара
