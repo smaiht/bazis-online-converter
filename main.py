@@ -336,6 +336,7 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
             
             bazis_file_path = os.path.join(SCRIPT_DIR, "bazis-base-model.b3d")
             initial_mod_time = os.path.getmtime(bazis_file_path)
+            log_message(f"initial_mod_time: {initial_mod_time}")
 
             new_license_window, new_pirate_detected, new_error_window, new_main_window = find_bazis_window(bazis_process.pid)
             if new_main_window:
@@ -353,6 +354,8 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
                 time.sleep(1)
                 
                 new_mod_time = os.path.getmtime(bazis_file_path)
+                log_message(f"new_mod_time: {new_mod_time}")
+                
                 if new_mod_time > initial_mod_time:
                     log_message(f"File successfully saved. Modification time changed from {initial_mod_time} to {new_mod_time}", IdProject=id_project)
                     # Remove temporary files and rename to success bazis file
