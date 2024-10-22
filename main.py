@@ -335,38 +335,35 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
             new_license_window, new_pirate_detected, new_error_window, new_main_window, new_confirmation_window = find_bazis_window(bazis_process.pid)
             if new_main_window:
                 log_message(f"Main Bazis Window found: {win32gui.GetWindowText(new_main_window)}")
-                time.sleep(5)
+                time.sleep(0.1)
 
                 activate_window(new_main_window)
-
-                # Способ 2: WM_CLOSE
-                # win32gui.PostMessage(new_main_window, win32con.WM_CLOSE, 0, 0)
-                
-                # Способ 3: Крестик в углу окна
+                #  Крестик в углу окна
                 win32gui.PostMessage(new_main_window, win32con.WM_SYSCOMMAND, win32con.SC_CLOSE, 0)
                 
-                time.sleep(3)  # Ждем появления диалога
-        
-                ##################### ??????
+                # Ждем появления диалога
+                time.sleep(1)
+
                 _1, _2, _3, _4, new_new_confirmation_window = find_bazis_window(bazis_process.pid)
                 if new_new_confirmation_window:
-                    log_message(f"Window CONFIRM found and ready: {win32gui.GetWindowText(new_new_confirmation_window)}")
+                    log_message(f"Confirmation window found: {win32gui.GetWindowText(new_new_confirmation_window)}")
                     win32gui.PostMessage(new_new_confirmation_window, win32con.WM_KEYDOWN, win32con.VK_RETURN, 0)
                     win32gui.PostMessage(new_new_confirmation_window, win32con.WM_KEYUP, win32con.VK_RETURN, 0)
                     log_message("Enter key sent (SAVED?)")
 
-                time.sleep(3)
+                    time.sleep(1)
                 
-                new_mod_time = os.path.getmtime(bazis_file_path)
-                log_message(f"new_mod_time: {new_mod_time} > initial_mod_time: {new_mod_time > initial_mod_time}")
+                    new_mod_time = os.path.getmtime(bazis_file_path)
+                    log_message(f"new_mod_time: {new_mod_time} > initial_mod_time: {new_mod_time > initial_mod_time}")
 
-                if new_mod_time > initial_mod_time:
-                    log_message(f"File successfully saved. Modification time changed from {initial_mod_time} to {new_mod_time}", IdProject=id_project)
-                    # Remove temporary files and rename to success bazis file
-                    os.remove(os.path.join(SCRIPT_DIR, 'flag-to-ctrl-s.json'))
-                    new_bazis_file_path = os.path.join(SCRIPT_DIR, SUCCESS_FILE_TO_BAZIS)
-                    os.rename(bazis_file_path, new_bazis_file_path)
-            
+                    if new_mod_time > initial_mod_time:
+                        log_message(f"File successfully saved. Modification time changed from {initial_mod_time} to {new_mod_time}", IdProject=id_project)
+                        # Remove temporary files and rename to success bazis file
+                        os.remove(os.path.join(SCRIPT_DIR, 'flag-to-ctrl-s.json'))
+                        new_bazis_file_path = os.path.join(SCRIPT_DIR, SUCCESS_FILE_TO_BAZIS)
+                        os.rename(bazis_file_path, new_bazis_file_path)
+
+        # this will fire only after removing 'flag-to-...'  
         if os.path.exists(os.path.join(SCRIPT_DIR, SUCCESS_FILE_TO_BAZIS)):
             log_message(f"Converted successfully: {SUCCESS_FILE_TO_BAZIS}", IdProject=id_project)
             kill_bazis(bazis_process)
