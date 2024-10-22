@@ -154,10 +154,8 @@ def start_bazis(pirate_mode, project_id, script=CONVERTER_FROM_BAZIS_SCRIPT):
     log_message(f"Using Bazis version: {bazis_app}", IdProject=project_id)
     log_message(f"Using script: {script}")
 
-    if (script == CONVERTER_FROM_BAZIS_SCRIPT) {
+    if (script == CONVERTER_FROM_BAZIS_SCRIPT):
         return subprocess.Popen([bazis_app, "--eval", script])
-
-    }
 
     return subprocess.Popen([bazis_app, "--eval", script], creationflags=win32con.CREATE_NEW_CONSOLE)
 
