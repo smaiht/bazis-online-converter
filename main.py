@@ -141,6 +141,11 @@ def manage_hasp_ini(enable_crack):
         
     log_message(f"Current state: Hasp.ini {'exists' if os.path.exists(roaming_hasp_ini) else 'does not exist'} in Roaming folder")
 
+def ensure_window_desktop():
+    startupinfo = subprocess.STARTUPINFO()
+    startupinfo.lpDesktop = "winsta0\\default"
+    return startupinfo
+
 def start_bazis(pirate_mode, project_id, script=CONVERTER_FROM_BAZIS_SCRIPT):
     find_and_kill_codemeter()
 
@@ -157,7 +162,10 @@ def start_bazis(pirate_mode, project_id, script=CONVERTER_FROM_BAZIS_SCRIPT):
     if (script == CONVERTER_FROM_BAZIS_SCRIPT):
         return subprocess.Popen([bazis_app, "--eval", script])
 
-    return subprocess.Popen([bazis_app, "--eval", script], creationflags=win32con.CREATE_NEW_CONSOLE)
+    startupinfo = ensure_window_desktop()
+    return subprocess.Popen([bazis_app, "--eval", script], 
+                          startupinfo=startupinfo,
+                          creationflags=win32con.CREATE_NEW_CONSOLE)
 
 def activate_window(hwnd):
     shell = win32com.client.Dispatch("WScript.Shell")
