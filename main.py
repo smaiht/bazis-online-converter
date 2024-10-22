@@ -389,6 +389,10 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
                 time.sleep(1)
 
 
+                save_bazis_file(new_main_window)
+                log_message("Стандартный ID для команды Save в Windows sent to Bazis window")
+                time.sleep(1)
+
                 
                 new_mod_time = os.path.getmtime(bazis_file_path)
                 log_message(f"new_mod_time: {new_mod_time} > initial_mod_time: {new_mod_time > initial_mod_time}")
@@ -413,6 +417,20 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
     return False
 
 
+def save_bazis_file(hwnd):
+    # Константы для команды Save
+    WM_COMMAND = 0x0111
+    ID_FILE_SAVE = 0xE103  # Стандартный ID для команды Save в Windows
+
+    log_message(f"Trying to save file through WM_COMMAND...")
+    try:
+        # Отправляем команду Save напрямую окну
+        win32gui.PostMessage(hwnd, WM_COMMAND, ID_FILE_SAVE, 0)
+        log_message("Save command sent successfully")
+        return True
+    except Exception as e:
+        log_message(f"Error sending save command: {str(e)}")
+        return False
 
 
 
