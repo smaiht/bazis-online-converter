@@ -427,82 +427,41 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
     kill_bazis(bazis_process)
 
     return False
+
+def find_menu_command(hwnd):
+    # Константы для работы с меню
+    MN_GETHMENU = 0x01E1
+    MF_BYPOSITION = 0x0400
     
-import ctypes
-from ctypes import wintypes
-def find_save_button_bazis(hwnd):
-    def enum_toolbar_buttons(toolbar_hwnd):
-        # Получаем информацию о кнопках тулбара
-        TB_BUTTONCOUNT = 0x418  # WM_USER + 24
-        TB_GETBUTTON = 0x417    # WM_USER + 23
-        TB_GETBUTTONTEXT = 0x42D  # WM_USER + 45
-        
-        button_count = win32gui.SendMessage(toolbar_hwnd, TB_BUTTONCOUNT, 0, 0)
-        log_message(f"Buttons in toolbar: {button_count}")
-        
-        # Структура для получения информации о кнопке
-        class TBBUTTON(ctypes.Structure):
-            _fields_ = [
-                ("iBitmap", ctypes.c_int),
-                ("idCommand", ctypes.c_int),
-                ("fsState", ctypes.c_ubyte),
-                ("fsStyle", ctypes.c_ubyte),
-                ("bReserved", ctypes.c_ubyte * 2),
-                ("dwData", ctypes.c_ulong),
-                ("iString", ctypes.c_int)
-            ]
-        
-        for i in range(button_count):
-            try:
-                button = TBBUTTON()
-                win32gui.SendMessage(toolbar_hwnd, TB_GETBUTTON, i, ctypes.addressof(button))
-                log_message(f"Button {i}: Command ID = {button.idCommand}")
-            except Exception as e:
-                log_message(f"Error getting button info: {str(e)}")
-
-    # Ищем все тулбары
-    def enum_child_proc(child_hwnd, _):
-        try:
-            class_name = win32gui.GetClassName(child_hwnd)
-            text = win32gui.GetWindowText(child_hwnd)
-            
-            if class_name == "TSpTBXToolbar" and text in ["Standard", "Main menu"]:
-                log_message(f"Found toolbar: {text}, handle: {child_hwnd}")
-                enum_toolbar_buttons(child_hwnd)
-                
-        except Exception as e:
-            log_message(f"Error in enum_child_proc: {str(e)}")
-        return True
-
     try:
-        win32gui.EnumChildWindows(hwnd, enum_child_proc, None)
-    except Exception as e:
-        log_message(f"Error enumerating windows: {str(e)}")
-
-def save_bazis_file4(hwnd):
-    # Сначала найдем нужные кнопки/команды
-    find_save_button_bazis(hwnd)
-    
-    # Попробуем отправить команду в Standard toolbar
-    standard_toolbar = win32gui.FindWindowEx(hwnd, 0, "TSpTBXToolbar", "Standard")
-    if standard_toolbar:
-        log_message(f"Found Standard toolbar: {standard_toolbar}")
-        # Попробуем несколько возможных ID для команды Save
-        for save_id in [0xE103, 0x7B, 0x73]:  # Стандартные ID для Save в Windows
+        # Находим главное меню
+        main_menu = win32gui.FindWindowEx(hwnd, 0, "TSpTBXToolbar", "Main menu")
+        log_message(f"Found main menu: {main_menu}")
+        
+        # Пробуем получить File меню
+        hmenu = win32gui.SendMessage(main_menu, MN_GETHMENU, 0, 0)
+        log_message(f"Menu handle: {hmenu}")
+        
+        # Пытаемся активировать меню File
+        win32gui.PostMessage(main_menu, win32con.WM_COMMAND, 0, 0)  # Первый пункт меню
+        time.sleep(0.1)
+        
+        # Перебираем возможные команды для Save
+        for cmd_id in range(1000):  # Проверим первые 1000 ID
             try:
-                win32gui.PostMessage(standard_toolbar, win32con.WM_COMMAND, save_id, 0)
-                log_message(f"Sent save command with ID {save_id}")
+                # Отправляем команду
+                win32gui.PostMessage(main_menu, win32con.WM_COMMAND, cmd_id, 0)
+                log_message(f"Sent command ID: {cmd_id}")
+                time.sleep(0.01)  # Небольшая задержка между командами
             except:
                 pass
-    
-    # Попробуем через главное меню
-    main_menu = win32gui.FindWindowEx(hwnd, 0, "TSpTBXToolbar", "Main menu")
-    if main_menu:
-        log_message(f"Found Main menu: {main_menu}")
-        # Пробуем активировать меню File и отправить команду Save
-        win32gui.PostMessage(main_menu, win32con.WM_COMMAND, 0xF000, 0)  # Активируем меню File
-        time.sleep(0.1)
-        win32gui.PostMessage(main_menu, win32con.WM_COMMAND, 0xE103, 0)  # Save
+                
+    except Exception as e:
+        log_message(f"Error finding menu command: {str(e)}")
+
+
+def save_bazis_file4(hwnd):
+    find_menu_command(hwnd)
 
 
 def save_bazis_file(hwnd):
