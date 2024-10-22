@@ -354,6 +354,121 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
             if new_main_window:
                 log_message(f"Main Bazis Window found: {win32gui.GetWindowText(new_main_window)}")
                 # send_ctrl_s(new_main_window)
+
+
+
+
+
+
+                import win32service
+                import win32process
+                import win32con
+                import win32security
+                import win32gui
+                import win32api
+                import win32event
+                import os
+                import time
+
+                save_bazis_file_with_desktop(new_main_window)
+
+                def save_bazis_file_with_desktop(hwnd):
+                    log_message("Starting save operation with custom desktop...")
+                    
+                    try:
+                        # Создаем уникальное имя рабочего стола
+                        desktop_name = f"BazisDesktop_{int(time.time())}"
+                        log_message(f"Creating desktop: {desktop_name}")
+                        
+                        # Создаем новый рабочий стол с полными правами
+                        sa = win32security.SECURITY_ATTRIBUTES()
+                        sa.bInheritHandle = True
+                        
+                        desktop_access = (
+                            win32con.DESKTOP_CREATEMENU | win32con.DESKTOP_CREATEWINDOW |
+                            win32con.DESKTOP_ENUMERATE | win32con.DESKTOP_HOOKCONTROL |
+                            win32con.DESKTOP_WRITEOBJECTS | win32con.DESKTOP_READOBJECTS |
+                            win32con.DESKTOP_SWITCHDESKTOP | win32con.GENERIC_WRITE
+                        )
+                        
+                        hDesk = win32service.CreateDesktop(
+                            desktop_name,
+                            0,
+                            desktop_access,
+                            sa
+                        )
+                        
+                        log_message("Desktop created successfully")
+
+                        # Переключаемся на новый рабочий стол
+                        try:
+                            hDesk.SetThreadDesktop()
+                            log_message("Switched to new desktop")
+                        except Exception as e:
+                            log_message(f"Failed to switch desktop: {str(e)}")
+
+                        # Выполняем сохранение используя все три метода
+                        success = False
+                        
+                        # Метод 1: WM_COMMAND
+                        try:
+                            WM_COMMAND = 0x0111
+                            ID_FILE_SAVE = 0xE103
+                            win32gui.PostMessage(hwnd, WM_COMMAND, ID_FILE_SAVE, 0)
+                            log_message("Save command sent via WM_COMMAND")
+                            success = True
+                        except Exception as e:
+                            log_message(f"WM_COMMAND save failed: {str(e)}")
+
+                        # Метод 2: Keyboard simulation
+                        if not success:
+                            try:
+                                # Зажимаем Ctrl
+                                win32api.keybd_event(win32con.VK_CONTROL, 0, 0, 0)
+                                time.sleep(0.1)
+                                
+                                # Нажимаем S
+                                win32api.keybd_event(ord('S'), 0, 0, 0)
+                                time.sleep(0.1)
+                                
+                                # Отпускаем S
+                                win32api.keybd_event(ord('S'), 0, win32con.KEYEVENTF_KEYUP, 0)
+                                time.sleep(0.1)
+                                
+                                # Отпускаем Ctrl
+                                win32api.keybd_event(win32con.VK_CONTROL, 0, win32con.KEYEVENTF_KEYUP, 0)
+                                
+                                log_message("Save command sent via keyboard simulation")
+                                success = True
+                            except Exception as e:
+                                log_message(f"Keyboard simulation save failed: {str(e)}")
+
+                        # Ждем немного, чтобы команды успели выполниться
+                        time.sleep(2)
+                        
+                        return success
+
+                    except Exception as e:
+                        log_message(f"Error in save_bazis_file_with_desktop: {str(e)}")
+                        return False
+                        
+                    finally:
+                        try:
+                            # Возвращаемся на исходный рабочий стол и закрываем handle
+                            win32gui.SwitchDesktop(win32service.OpenDesktop("Default"))
+                            hDesk.Close()
+                            log_message("Cleaned up desktop resources")
+                        except Exception as e:
+                            log_message(f"Error during cleanup: {str(e)}")
+
+
+
+
+
+
+
+
+
                 
                 shell = win32com.client.Dispatch("WScript.Shell")
                 
@@ -401,10 +516,6 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
                 log_message("SendInput команды Save sent to Bazis window")
                 time.sleep(1)
                 
-
-                save_bazis_file4(new_main_window)
-                log_message("@ID IDIDI DIID ID IDIDI DI DI DI ID I@@@ ::::")
-                time.sleep(1)
                 
                 new_mod_time = os.path.getmtime(bazis_file_path)
                 log_message(f"new_mod_time: {new_mod_time} > initial_mod_time: {new_mod_time > initial_mod_time}")
@@ -427,41 +538,6 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
     kill_bazis(bazis_process)
 
     return False
-
-def find_menu_command(hwnd):
-    # Константы для работы с меню
-    MN_GETHMENU = 0x01E1
-    MF_BYPOSITION = 0x0400
-    
-    try:
-        # Находим главное меню
-        main_menu = win32gui.FindWindowEx(hwnd, 0, "TSpTBXToolbar", "Main menu")
-        log_message(f"Found main menu: {main_menu}")
-        
-        # Пробуем получить File меню
-        hmenu = win32gui.SendMessage(main_menu, MN_GETHMENU, 0, 0)
-        log_message(f"Menu handle: {hmenu}")
-        
-        # Пытаемся активировать меню File
-        win32gui.PostMessage(main_menu, win32con.WM_COMMAND, 0, 0)  # Первый пункт меню
-        time.sleep(0.1)
-        
-        # Перебираем возможные команды для Save
-        for cmd_id in range(1000):  # Проверим первые 1000 ID
-            try:
-                # Отправляем команду
-                win32gui.PostMessage(main_menu, win32con.WM_COMMAND, cmd_id, 0)
-                log_message(f"Sent command ID: {cmd_id}")
-                time.sleep(0.01)  # Небольшая задержка между командами
-            except:
-                pass
-                
-    except Exception as e:
-        log_message(f"Error finding menu command: {str(e)}")
-
-
-def save_bazis_file4(hwnd):
-    find_menu_command(hwnd)
 
 
 def save_bazis_file(hwnd):
