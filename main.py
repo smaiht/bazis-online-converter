@@ -4,6 +4,7 @@ import win32gui
 import win32process
 import win32con
 import win32com.client
+import win32service
 import os
 import json
 import shutil
@@ -360,15 +361,6 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
 
 
 
-                import win32service
-                import win32process
-                import win32con
-                import win32security
-                import win32gui
-                import win32api
-                import win32event
-                import os
-                import time
 
                 save_bazis_file_with_desktop(new_main_window)
 
