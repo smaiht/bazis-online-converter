@@ -10,7 +10,12 @@ import json
 import shutil
 import requests
 
+import win32ts
+import winreg
+import ctypes
+from ctypes import wintypes
 import win32security
+
 import win32api
 import ntsecuritycon as con
 
@@ -321,6 +326,23 @@ def process_folder(folder_path, pirate_mode, project_id):
 
 
 def process_folder_to_bazis(folder_path, id_project, id_calculation):
+
+    your_username = os.getenv('USER')
+    your_password = os.getenv('PASS')
+    if not enable_autologon(your_username, your_password):
+        log_message("Failed to set up autologon", level="ERROR")
+        disable_autologon()
+        return False
+        
+    # Убеждаемся, что сессия активна
+    if not ensure_active_session():
+        log_message("Failed to ensure active session", level="ERROR")
+        disable_autologon()
+        return False
+    
+
+
+
     remove_previous_data()
     copy_to_script_dir(folder_path)
 
@@ -342,6 +364,8 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
         if error_window:
             log_message("Error reading file", level="ERROR", IdProject=id_project)
             kill_bazis(bazis_process)
+
+            disable_autologon()
             return False
             
         if os.path.exists(os.path.join(SCRIPT_DIR, 'flag-to-ctrl-s.json')):
@@ -372,10 +396,7 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
 
                 time.sleep(0.2)
 
-                import uiautomation as auto
 
-                window = auto.WindowControl(handle=new_main_window)
-                window.SendKeys('{Ctrl}s')
     
                 # Получаем scan code для 'S'
                 scan_code = win32api.MapVirtualKey(ord('S'), 0)
@@ -423,6 +444,8 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
         if os.path.exists(os.path.join(SCRIPT_DIR, SUCCESS_FILE_TO_BAZIS)):
             log_message(f"Converted successfully: {SUCCESS_FILE_TO_BAZIS}", IdProject=id_project)
             kill_bazis(bazis_process)
+            disable_autologon()
+
             return True
 
         time.sleep(1)
@@ -430,9 +453,89 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
     log_message('(to bazis) Processing timed out', level="ERROR", IdProject=id_project, tg=True)
     kill_bazis(bazis_process)
 
+    disable_autologon()
     return False
 
 
+def enable_autologon(username, password, domain=""):
+    """
+    Включает автологон Windows для указанного пользователя
+    """
+    try:
+        # Получаем необходимые права
+        priv_flags = win32security.TOKEN_ADJUST_PRIVILEGES | win32security.TOKEN_QUERY
+        h_token = win32security.OpenProcessToken(win32api.GetCurrentProcess(), priv_flags)
+        priv_id = win32security.LookupPrivilegeValue(None, win32security.SE_BACKUP_NAME)
+        win32security.AdjustTokenPrivileges(h_token, 0, [(priv_id, win32security.SE_PRIVILEGE_ENABLED)])
+
+        # Путь в реестре для автологона
+        path = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
+        
+        # Открываем ключ реестра
+        key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, path, 0, 
+                                winreg.KEY_ALL_ACCESS | winreg.KEY_WOW64_64KEY)
+        
+        # Устанавливаем необходимые значения
+        winreg.SetValueEx(key, "AutoAdminLogon", 0, winreg.REG_SZ, "1")
+        winreg.SetValueEx(key, "DefaultUsername", 0, winreg.REG_SZ, username)
+        winreg.SetValueEx(key, "DefaultPassword", 0, winreg.REG_SZ, password)
+        if domain:
+            winreg.SetValueEx(key, "DefaultDomainName", 0, winreg.REG_SZ, domain)
+        
+        # Отключаем запрос пароля после выхода из спящего режима
+        winreg.SetValueEx(key, "ForceAutoLogon", 0, winreg.REG_SZ, "1")
+        
+        winreg.CloseKey(key)
+        return True
+        
+    except Exception as e:
+        log_message(f"Error setting autologon: {str(e)}", level="ERROR")
+        return False
+
+def ensure_active_session():
+    """
+    Проверяет и обеспечивает активную сессию пользователя
+    """
+    try:
+        # Предотвращаем переход в спящий режим
+        ctypes.windll.kernel32.SetThreadExecutionState(
+            0x80000002  # ES_CONTINUOUS | ES_SYSTEM_REQUIRED
+        )
+        
+        # Проверяем, активна ли сессия
+        user_name = win32api.GetUserName()
+        session_id = win32ts.WTSGetActiveConsoleSessionId()
+        
+        if session_id == 0xFFFFFFFF:  # Нет активной сессии
+            log_message("No active session found, initiating autologon...")
+            # Можно добавить дополнительную логику для инициации входа
+            return False
+            
+        return True
+        
+    except Exception as e:
+        log_message(f"Error ensuring active session: {str(e)}", level="ERROR")
+        return False
+    
+def disable_autologon():
+    """
+    Отключает автологон Windows
+    """
+    try:
+        path = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
+        key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, path, 0, 
+                                winreg.KEY_ALL_ACCESS | winreg.KEY_WOW64_64KEY)
+        
+        winreg.SetValueEx(key, "AutoAdminLogon", 0, winreg.REG_SZ, "0")
+        winreg.SetValueEx(key, "DefaultPassword", 0, winreg.REG_SZ, "")
+        winreg.SetValueEx(key, "ForceAutoLogon", 0, winreg.REG_SZ, "0")
+        
+        winreg.CloseKey(key)
+        return True
+        
+    except Exception as e:
+        log_message(f"Error disabling autologon: {str(e)}", level="ERROR")
+        return False
 
 def save_bazis_file(hwnd):
     # Константы для команды Save
