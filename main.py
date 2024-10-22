@@ -428,53 +428,50 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
 
     return False
 
-def find_save_menu(hwnd):
-    # Получаем handle меню окна
-    hmenu = win32gui.GetMenu(hwnd)
+def find_save_button(hwnd):
+    menu_info = []
     
-    # Получаем количество пунктов в меню
-    count = win32gui.GetMenuItemCount(hmenu)
-    
-    log_message(f"Menu items count: {count}")
-    
-    # Ищем пункт File
-    for i in range(count):
-        menu_text = win32gui.GetMenuString(hmenu, i, win32con.MF_BYPOSITION)
-        log_message(f"Menu item {i}: {menu_text}")
+    def enum_child_proc(child_hwnd, _):
+        try:
+            text = win32gui.GetWindowText(child_hwnd)
+            class_name = win32gui.GetClassName(child_hwnd)
+            style = win32gui.GetWindowLong(child_hwnd, win32con.GWL_STYLE)
+            
+            info = f"Handle: {child_hwnd}, Text: {text}, Class: {class_name}, Style: {style}"
+            menu_info.append(info)
+            log_message(f"Found window: {info}")
+            
+        except Exception as e:
+            log_message(f"Error getting window info: {str(e)}")
+        return True
+
+    try:
+        # Перечисляем все дочерние окна
+        win32gui.EnumChildWindows(hwnd, enum_child_proc, None)
         
-        if menu_text in ['File', 'Файл']:
-            # Получаем подменю File
-            file_menu = win32gui.GetSubMenu(hmenu, i)
+        # Выводим всю найденную информацию
+        log_message("All windows found:")
+        for info in menu_info:
+            log_message(info)
             
-            # Получаем количество пунктов в подменю
-            sub_count = win32gui.GetMenuItemCount(file_menu)
-            
-            # Ищем пункт Save
-            for j in range(sub_count):
-                sub_text = win32gui.GetMenuString(file_menu, j, win32con.MF_BYPOSITION)
-                log_message(f"Submenu item {j}: {sub_text}")
-                
-                if sub_text in ['Save', 'Сохранить']:
-                    # Получаем ID команды
-                    command_id = win32gui.GetMenuItemID(file_menu, j)
-                    log_message(f"Found Save command ID: {command_id}")
-                    return command_id
-    
-    return None
+    except Exception as e:
+        log_message(f"Error enumerating windows: {str(e)}")
+        
+    return menu_info
 
 def save_bazis_file4(hwnd):
-    try:
-        # Ищем ID команды Save
-        save_id = find_save_menu(hwnd)
+    log_message("Searching for save button/menu...")
+    windows = find_save_button(hwnd)
+    
+    # Можно также попробовать найти панель инструментов
+    toolbar = win32gui.FindWindowEx(hwnd, 0, "ToolbarWindow32", None)
+    if toolbar:
+        log_message(f"Found toolbar: {toolbar}")
         
-        if save_id:
-            log_message(f"Sending save command with ID: {save_id}")
-            win32gui.PostMessage(hwnd, win32con.WM_COMMAND, save_id, 0)
-        else:
-            log_message("Save menu item not found")
-    except Exception as e:
-        log_message(f"Error finding/using menu: {str(e)}")
-
+        # Получаем информацию о кнопках на панели инструментов
+        TB_BUTTONCOUNT = win32con.WM_USER + 24
+        button_count = win32gui.SendMessage(toolbar, TB_BUTTONCOUNT, 0, 0)
+        log_message(f"Toolbar buttons count: {button_count}")
 
 
 def save_bazis_file(hwnd):
