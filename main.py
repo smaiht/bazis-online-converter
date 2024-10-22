@@ -340,7 +340,24 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
             new_license_window, new_pirate_detected, new_error_window, new_main_window = find_bazis_window(bazis_process.pid)
             if new_main_window:
                 log_message(f"Main Bazis Window found: {win32gui.GetWindowText(new_main_window)}")
-                send_ctrl_s(new_main_window)
+                # send_ctrl_s(new_main_window)
+                
+                activate_window(new_main_window)
+                time.sleep(0.2)  # Даем окну время активироваться
+                
+                # Зажимаем Ctrl
+                win32gui.PostMessage(new_main_window, win32con.WM_KEYDOWN, win32con.VK_CONTROL, 0)
+                time.sleep(0.1)  # Важная пауза - удостоверяемся, что Ctrl зажат
+                
+                # Пока Ctrl зажат, нажимаем и отпускаем S
+                win32gui.PostMessage(new_main_window, win32con.WM_KEYDOWN, ord('S'), 0x002F0001)  # Добавляем scan code
+                time.sleep(0.1)
+                win32gui.PostMessage(new_main_window, win32con.WM_KEYUP, ord('S'), 0xC02F0001)
+                
+                time.sleep(0.1)  # Ждем перед отпусканием Ctrl
+                # Отпускаем Ctrl
+                win32gui.PostMessage(new_main_window, win32con.WM_KEYUP, win32con.VK_CONTROL, 0)
+
                 log_message("Ctrl+S sent to Bazis window")
                 time.sleep(1)
                 
