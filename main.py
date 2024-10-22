@@ -401,6 +401,11 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
                 log_message("SendInput команды Save sent to Bazis window")
                 time.sleep(1)
                 
+
+                save_bazis_file4(new_main_window)
+                log_message("@ID IDIDI DIID ID IDIDI DI DI DI ID I@@@ ::::")
+                time.sleep(1)
+                
                 new_mod_time = os.path.getmtime(bazis_file_path)
                 log_message(f"new_mod_time: {new_mod_time} > initial_mod_time: {new_mod_time > initial_mod_time}")
 
@@ -422,6 +427,54 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
     kill_bazis(bazis_process)
 
     return False
+
+def find_save_menu(hwnd):
+    # Получаем handle меню окна
+    hmenu = win32gui.GetMenu(hwnd)
+    
+    # Получаем количество пунктов в меню
+    count = win32gui.GetMenuItemCount(hmenu)
+    
+    log_message(f"Menu items count: {count}")
+    
+    # Ищем пункт File
+    for i in range(count):
+        menu_text = win32gui.GetMenuString(hmenu, i, win32con.MF_BYPOSITION)
+        log_message(f"Menu item {i}: {menu_text}")
+        
+        if menu_text in ['File', 'Файл']:
+            # Получаем подменю File
+            file_menu = win32gui.GetSubMenu(hmenu, i)
+            
+            # Получаем количество пунктов в подменю
+            sub_count = win32gui.GetMenuItemCount(file_menu)
+            
+            # Ищем пункт Save
+            for j in range(sub_count):
+                sub_text = win32gui.GetMenuString(file_menu, j, win32con.MF_BYPOSITION)
+                log_message(f"Submenu item {j}: {sub_text}")
+                
+                if sub_text in ['Save', 'Сохранить']:
+                    # Получаем ID команды
+                    command_id = win32gui.GetMenuItemID(file_menu, j)
+                    log_message(f"Found Save command ID: {command_id}")
+                    return command_id
+    
+    return None
+
+def save_bazis_file4(hwnd):
+    try:
+        # Ищем ID команды Save
+        save_id = find_save_menu(hwnd)
+        
+        if save_id:
+            log_message(f"Sending save command with ID: {save_id}")
+            win32gui.PostMessage(hwnd, win32con.WM_COMMAND, save_id, 0)
+        else:
+            log_message("Save menu item not found")
+    except Exception as e:
+        log_message(f"Error finding/using menu: {str(e)}")
+
 
 
 def save_bazis_file(hwnd):
