@@ -363,98 +363,7 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
 
 
                 save_bazis_file_with_desktop(new_main_window)
-
-                def save_bazis_file_with_desktop(hwnd):
-                    log_message("Starting save operation with custom desktop...")
-                    
-                    try:
-                        # Создаем уникальное имя рабочего стола
-                        desktop_name = f"BazisDesktop_{int(time.time())}"
-                        log_message(f"Creating desktop: {desktop_name}")
-                        
-                        # Создаем новый рабочий стол с полными правами
-                        sa = win32security.SECURITY_ATTRIBUTES()
-                        sa.bInheritHandle = True
-                        
-                        desktop_access = (
-                            win32con.DESKTOP_CREATEMENU | win32con.DESKTOP_CREATEWINDOW |
-                            win32con.DESKTOP_ENUMERATE | win32con.DESKTOP_HOOKCONTROL |
-                            win32con.DESKTOP_WRITEOBJECTS | win32con.DESKTOP_READOBJECTS |
-                            win32con.DESKTOP_SWITCHDESKTOP | win32con.GENERIC_WRITE
-                        )
-                        
-                        hDesk = win32service.CreateDesktop(
-                            desktop_name,
-                            0,
-                            desktop_access,
-                            sa
-                        )
-                        
-                        log_message("Desktop created successfully")
-
-                        # Переключаемся на новый рабочий стол
-                        try:
-                            hDesk.SetThreadDesktop()
-                            log_message("Switched to new desktop")
-                        except Exception as e:
-                            log_message(f"Failed to switch desktop: {str(e)}")
-
-                        # Выполняем сохранение используя все три метода
-                        success = False
-                        
-                        # Метод 1: WM_COMMAND
-                        try:
-                            WM_COMMAND = 0x0111
-                            ID_FILE_SAVE = 0xE103
-                            win32gui.PostMessage(hwnd, WM_COMMAND, ID_FILE_SAVE, 0)
-                            log_message("Save command sent via WM_COMMAND")
-                            success = True
-                        except Exception as e:
-                            log_message(f"WM_COMMAND save failed: {str(e)}")
-
-                        # Метод 2: Keyboard simulation
-                        if not success:
-                            try:
-                                # Зажимаем Ctrl
-                                win32api.keybd_event(win32con.VK_CONTROL, 0, 0, 0)
-                                time.sleep(0.1)
-                                
-                                # Нажимаем S
-                                win32api.keybd_event(ord('S'), 0, 0, 0)
-                                time.sleep(0.1)
-                                
-                                # Отпускаем S
-                                win32api.keybd_event(ord('S'), 0, win32con.KEYEVENTF_KEYUP, 0)
-                                time.sleep(0.1)
-                                
-                                # Отпускаем Ctrl
-                                win32api.keybd_event(win32con.VK_CONTROL, 0, win32con.KEYEVENTF_KEYUP, 0)
-                                
-                                log_message("Save command sent via keyboard simulation")
-                                success = True
-                            except Exception as e:
-                                log_message(f"Keyboard simulation save failed: {str(e)}")
-
-                        # Ждем немного, чтобы команды успели выполниться
-                        time.sleep(2)
-                        
-                        return success
-
-                    except Exception as e:
-                        log_message(f"Error in save_bazis_file_with_desktop: {str(e)}")
-                        return False
-                        
-                    finally:
-                        try:
-                            # Возвращаемся на исходный рабочий стол и закрываем handle
-                            win32gui.SwitchDesktop(win32service.OpenDesktop("Default"))
-                            hDesk.Close()
-                            log_message("Cleaned up desktop resources")
-                        except Exception as e:
-                            log_message(f"Error during cleanup: {str(e)}")
-
-
-
+                time.sleep(1)
 
 
 
@@ -530,6 +439,99 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
     kill_bazis(bazis_process)
 
     return False
+
+
+def save_bazis_file_with_desktop(hwnd):
+    log_message("Starting save operation with custom desktop...")
+    
+    try:
+        # Создаем уникальное имя рабочего стола
+        desktop_name = f"BazisDesktop_{int(time.time())}"
+        log_message(f"Creating desktop: {desktop_name}")
+        
+        # Создаем новый рабочий стол с полными правами
+        sa = win32security.SECURITY_ATTRIBUTES()
+        sa.bInheritHandle = True
+        
+        desktop_access = (
+            win32con.DESKTOP_CREATEMENU | win32con.DESKTOP_CREATEWINDOW |
+            win32con.DESKTOP_ENUMERATE | win32con.DESKTOP_HOOKCONTROL |
+            win32con.DESKTOP_WRITEOBJECTS | win32con.DESKTOP_READOBJECTS |
+            win32con.DESKTOP_SWITCHDESKTOP | win32con.GENERIC_WRITE
+        )
+        
+        hDesk = win32service.CreateDesktop(
+            desktop_name,
+            0,
+            desktop_access,
+            sa
+        )
+        
+        log_message("Desktop created successfully")
+
+        # Переключаемся на новый рабочий стол
+        try:
+            hDesk.SetThreadDesktop()
+            log_message("Switched to new desktop")
+        except Exception as e:
+            log_message(f"Failed to switch desktop: {str(e)}")
+
+        # Выполняем сохранение используя все три метода
+        success = False
+        
+        # Метод 1: WM_COMMAND
+        try:
+            WM_COMMAND = 0x0111
+            ID_FILE_SAVE = 0xE103
+            win32gui.PostMessage(hwnd, WM_COMMAND, ID_FILE_SAVE, 0)
+            log_message("Save command sent via WM_COMMAND")
+            success = True
+        except Exception as e:
+            log_message(f"WM_COMMAND save failed: {str(e)}")
+
+        # Метод 2: Keyboard simulation
+        if not success:
+            try:
+                # Зажимаем Ctrl
+                win32api.keybd_event(win32con.VK_CONTROL, 0, 0, 0)
+                time.sleep(0.1)
+                
+                # Нажимаем S
+                win32api.keybd_event(ord('S'), 0, 0, 0)
+                time.sleep(0.1)
+                
+                # Отпускаем S
+                win32api.keybd_event(ord('S'), 0, win32con.KEYEVENTF_KEYUP, 0)
+                time.sleep(0.1)
+                
+                # Отпускаем Ctrl
+                win32api.keybd_event(win32con.VK_CONTROL, 0, win32con.KEYEVENTF_KEYUP, 0)
+                
+                log_message("Save command sent via keyboard simulation")
+                success = True
+            except Exception as e:
+                log_message(f"Keyboard simulation save failed: {str(e)}")
+
+        # Ждем немного, чтобы команды успели выполниться
+        time.sleep(2)
+        
+        return success
+
+    except Exception as e:
+        log_message(f"Error in save_bazis_file_with_desktop: {str(e)}")
+        return False
+        
+    finally:
+        try:
+            # Возвращаемся на исходный рабочий стол и закрываем handle
+            win32gui.SwitchDesktop(win32service.OpenDesktop("Default"))
+            hDesk.Close()
+            log_message("Cleaned up desktop resources")
+        except Exception as e:
+            log_message(f"Error during cleanup: {str(e)}")
+
+
+
 
 
 def save_bazis_file(hwnd):
