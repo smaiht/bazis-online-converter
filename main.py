@@ -442,63 +442,57 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
 
 
 def save_bazis_file_with_desktop(hwnd):
-    log_message("Starting save operation with separate process...")
+    log_message("Starting save operation with UIPI bypass...")
     
     try:
-        # Создаем временный скрипт для сохранения
-        save_script = """
-import win32gui
-import win32con
-import time
-import sys
-
-def save_file(hwnd):
-    # WM_COMMAND метод
-    WM_COMMAND = 0x0111
-    ID_FILE_SAVE = 0xE103
-    win32gui.PostMessage(int(hwnd), WM_COMMAND, ID_FILE_SAVE, 0)
-    
-    # Keyboard метод
-    win32gui.PostMessage(int(hwnd), win32con.WM_KEYDOWN, win32con.VK_CONTROL, 0)
-    time.sleep(0.1)
-    win32gui.PostMessage(int(hwnd), win32con.WM_KEYDOWN, ord('S'), 0)
-    time.sleep(0.1)
-    win32gui.PostMessage(int(hwnd), win32con.WM_KEYUP, ord('S'), 0)
-    win32gui.PostMessage(int(hwnd), win32con.WM_KEYUP, win32con.VK_CONTROL, 0)
-
-if __name__ == '__main__':
-    save_file(sys.argv[1])
-"""
-        import tempfile
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
-            f.write(save_script)
-            temp_script = f.name
-
-        # Создаем процесс с новым рабочим столом
-        si = subprocess.STARTUPINFO()
-        si.lpDesktop = "winsta0\\default"
+        # Получаем текущий процесс
+        current_process = win32api.GetCurrentProcess()
         
-        process = subprocess.Popen(
-            ['python', temp_script, str(hwnd)],
-            startupinfo=si,
-            creationflags=subprocess.CREATE_NEW_CONSOLE
+        # Изменяем токен процесса для обхода UIPI
+        token = win32security.OpenProcessToken(
+            current_process,
+            win32security.TOKEN_ALL_ACCESS
         )
         
-        # Ждем завершения процесса
-        process.wait(timeout=5)
+        # Включаем UIAccess привилегию
+        ui_access_sid = win32security.CreateWellKnownSid(
+            win32security.WinBuiltinUsersSid
+        )
         
-        # Удаляем временный файл
-        os.unlink(temp_script)
+        # Создаем новый токен с повышенными привилегиями
+        new_token = win32security.DuplicateTokenEx(
+            token,
+            win32security.MAXIMUM_ALLOWED,
+            None,
+            win32security.SecurityImpersonation,
+            win32security.TokenPrimary
+        )
         
-        log_message("Save command sent via separate process")
+        # Устанавливаем новый токен
+        win32security.SetTokenInformation(
+            new_token,
+            win32security.TokenUIAccess,
+            True
+        )
+        
+        # Выполняем сохранение с повышенными привилегиями
+        win32gui.PostMessage(hwnd, win32con.WM_COMMAND, 0xE103, 0)  # Save command
+        time.sleep(0.5)
+        
+        # Симулируем нажатие Ctrl+S
+        win32api.keybd_event(win32con.VK_CONTROL, 0, 0, 0)
+        time.sleep(0.1)
+        win32api.keybd_event(ord('S'), 0, 0, 0)
+        time.sleep(0.1)
+        win32api.keybd_event(ord('S'), 0, win32con.KEYEVENTF_KEYUP, 0)
+        win32api.keybd_event(win32con.VK_CONTROL, 0, win32con.KEYEVENTF_KEYUP, 0)
+        
+        log_message("Save commands sent with elevated privileges")
         return True
-
+        
     except Exception as e:
-        log_message(f"Error in save_bazis_file_with_desktop: {str(e)}")
+        log_message(f"Error in save_bazis_file_with_uipi_bypass: {str(e)}")
         return False
-
-
-
 
 
 def save_bazis_file(hwnd):
