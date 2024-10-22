@@ -248,6 +248,7 @@ def find_bazis_window(pid):
 
                 elif 'Подтверждение' in title or 'Confirmation' in title:
                     confirmation_window[0] = hwnd
+                    log_message(f"Found Confirmation Confirmation Confirmation with PID {pid}: {title}")
                     raise StopIteration
                 
         return True
@@ -350,7 +351,6 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
                 _1, _2, _3, _4, new_new_confirmation_window = find_bazis_window(bazis_process.pid)
                 if new_new_confirmation_window:
                     log_message(f"Window CONFIRM found and ready: {win32gui.GetWindowText(new_new_confirmation_window)}")
-                    activate_window(new_new_confirmation_window)
                     win32gui.PostMessage(new_new_confirmation_window, win32con.WM_KEYDOWN, win32con.VK_RETURN, 0)
                     win32gui.PostMessage(new_new_confirmation_window, win32con.WM_KEYUP, win32con.VK_RETURN, 0)
                     log_message("Enter key sent (SAVED?)")
