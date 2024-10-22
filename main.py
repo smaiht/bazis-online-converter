@@ -182,30 +182,6 @@ def activate_window(hwnd):
         shell.AppActivate(window_title)
     time.sleep(0.5)
 
-# def send_enter(hwnd):
-#     shell = win32com.client.Dispatch("WScript.Shell")
-#     shell.SendKeys('%') # Alt key
-#     time.sleep(0.1)
-#     shell.SendKeys('{ENTER}')
-
-def send_ctrl_s(hwnd):
-    # shell = win32com.client.Dispatch("WScript.Shell")
-    # shell.SendKeys('%') # Alt key
-    # win32gui.SetForegroundWindow(hwnd)
-    # time.sleep(0.1)
-    # shell.SendKeys('^s')
-    if win32gui.IsWindow(hwnd) and win32gui.IsWindowVisible(hwnd):
-        log_message(f"Window for saving found and ready: {win32gui.GetWindowText(hwnd)}")
-        activate_window(hwnd)
-        # Отправляем Ctrl
-        win32gui.PostMessage(hwnd, win32con.WM_KEYDOWN, win32con.VK_CONTROL, 0)
-        # Отправляем S
-        win32gui.PostMessage(hwnd, win32con.WM_KEYDOWN, ord('S'), 0)
-        win32gui.PostMessage(hwnd, win32con.WM_KEYUP, ord('S'), 0)
-        # Отпускаем Ctrl
-        win32gui.PostMessage(hwnd, win32con.WM_KEYUP, win32con.VK_CONTROL, 0)
-        log_message("Ctrl+S sent to window")
-
 def kill_bazis(bazis_process):
     try:
         bazis_process.terminate()
@@ -243,6 +219,7 @@ def find_bazis_window(pid):
     pirate_window = [None]
     error_window = [None]
     main_window = [None]
+    confirmation_window = [None]
 
     def enum_callback(hwnd, _):
         if win32gui.IsWindowVisible(hwnd) and win32gui.IsWindowEnabled(hwnd):
@@ -268,6 +245,10 @@ def find_bazis_window(pid):
                 elif 'БАЗИС' in title or 'BAZIS' in title:
                     main_window[0] = hwnd
                     raise StopIteration
+
+                elif 'Подтверждение' in title or 'Confirmation' in title:
+                    confirmation_window[0] = hwnd
+                    raise StopIteration
                 
         return True
 
@@ -276,7 +257,7 @@ def find_bazis_window(pid):
     except StopIteration:
         pass
 
-    return license_window[0], pirate_window[0], error_window[0], main_window[0]
+    return license_window[0], pirate_window[0], error_window[0], main_window[0], confirmation_window[0]
 
 
 
@@ -288,7 +269,7 @@ def process_folder(folder_path, pirate_mode, project_id):
     start_time = time.time()
 
     while time.time() - start_time < TIMEOUT:
-        license_window, pirate_detected, error_window, main_window = find_bazis_window(bazis_process.pid)
+        license_window, pirate_detected, error_window, main_window, confirmation_window = find_bazis_window(bazis_process.pid)
         
         if not pirate_mode:
             if license_window:
@@ -297,8 +278,6 @@ def process_folder(folder_path, pirate_mode, project_id):
                 win32gui.PostMessage(license_window, win32con.WM_KEYDOWN, win32con.VK_RETURN, 0)
                 win32gui.PostMessage(license_window, win32con.WM_KEYUP, win32con.VK_RETURN, 0)
                 log_message("Enter key sent (Authorized successfully?)")
-                # new_license_window, new_pirate_detected, new_error_window, new_main_window = find_bazis_window(bazis_process.pid)
-                # log_message(f"Current window: {win32gui.GetWindowText(new_license_window)}")
 
             if pirate_detected:
                 log_message("Pirate file detected", level="PIRATE", IdProject=project_id)
@@ -323,44 +302,7 @@ def process_folder(folder_path, pirate_mode, project_id):
 
     return False
 
-def create_hidden_rdp_session():
-    try:
-        import subprocess
-        
-        # Создаем скрытое RDP подключение к локальному компьютеру
-        cmdline = [
-            'mstsc.exe',
-            '/v:localhost',
-            '/admin',
-            '/noconsentprompt',
-            '/w:1',
-            '/h:1'
-        ]
-        
-        # Запускаем RDP клиент скрыто
-        subprocess.Popen(
-            cmdline,
-            creationflags=subprocess.CREATE_NO_WINDOW,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        
-        time.sleep(5)  # Даем время на подключение
-        return True
-    except Exception as e:
-        log_message(f"Error creating RDP session: {str(e)}")
-        return False
-    
-    
 def process_folder_to_bazis(folder_path, id_project, id_calculation):
-    if create_hidden_rdp_session():
-        log_message("Hidden RDP session created successfully")
-    else:
-        log_message("Failed to create hidden RDP session", level="WARNING")
-    
-    time.sleep(5)  # Даем время на инициализацию сессии
-
-
     remove_previous_data()
     copy_to_script_dir(folder_path)
 
@@ -369,15 +311,13 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
     start_time = time.time()
 
     while time.time() - start_time < TIMEOUT:
-        license_window, pirate_detected, error_window, main_window = find_bazis_window(bazis_process.pid)
+        license_window, pirate_detected, error_window, main_window, confirmation_window = find_bazis_window(bazis_process.pid)
         if license_window:
             log_message(f"Window found and ready: {win32gui.GetWindowText(license_window)}")
             activate_window(license_window)
             win32gui.PostMessage(license_window, win32con.WM_KEYDOWN, win32con.VK_RETURN, 0)
             win32gui.PostMessage(license_window, win32con.WM_KEYUP, win32con.VK_RETURN, 0)
             log_message("Enter key sent (Authorized successfully?)")
-            # new_license_window, new_pirate_detected, new_error_window, new_main_window = find_bazis_window(bazis_process.pid)
-            # log_message(f"Current window: {win32gui.GetWindowText(new_license_window)}")
 
         if error_window:
             log_message("Error reading file", level="ERROR", IdProject=id_project)
@@ -391,73 +331,31 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
             initial_mod_time = os.path.getmtime(bazis_file_path)
             log_message(f"initial_mod_time: {initial_mod_time}")
 
-            new_license_window, new_pirate_detected, new_error_window, new_main_window = find_bazis_window(bazis_process.pid)
+            new_license_window, new_pirate_detected, new_error_window, new_main_window, new_confirmation_window = find_bazis_window(bazis_process.pid)
             if new_main_window:
                 log_message(f"Main Bazis Window found: {win32gui.GetWindowText(new_main_window)}")
-                # send_ctrl_s(new_main_window)
+                time.sleep(5)
 
-
-
-
-                
-                shell = win32com.client.Dispatch("WScript.Shell")
-                
                 activate_window(new_main_window)
-                time.sleep(0.1)
+
+                # Способ 2: WM_CLOSE
+                # win32gui.PostMessage(new_main_window, win32con.WM_CLOSE, 0, 0)
                 
-                # Отправляем Ctrl+S через SendKeys
-                shell.SendKeys('^s')
-                log_message("shell Ctrl+S sent to Bazis window")
-                time.sleep(0.1)
-
-                time.sleep(0.2)
-
-
-    
-                # Получаем scan code для 'S'
-                scan_code = win32api.MapVirtualKey(ord('S'), 0)
+                # Способ 3: Крестик в углу окна
+                win32gui.PostMessage(new_main_window, win32con.WM_SYSCOMMAND, win32con.SC_CLOSE, 0)
                 
-                # Зажимаем Ctrl
-                win32gui.PostMessage(new_main_window, win32con.WM_KEYDOWN, win32con.VK_CONTROL, 0)
-                time.sleep(0.1)
-                
-                # Нажимаем S с правильным scan code
-                lparam = (scan_code << 16) | 1
-                win32gui.PostMessage(new_main_window, win32con.WM_KEYDOWN, ord('S'), lparam)
-                time.sleep(0.1)
-                win32gui.PostMessage(new_main_window, win32con.WM_KEYUP, ord('S'), lparam | 0xC0000000)
-                
-                time.sleep(0.1)
-                win32gui.PostMessage(new_main_window, win32con.WM_KEYUP, win32con.VK_CONTROL, 0)
+                time.sleep(3)  # Ждем появления диалога
+        
+                ##################### ??????
+                _1, _2, _3, _4, new_new_confirmation_window = find_bazis_window(bazis_process.pid)
+                if new_new_confirmation_window:
+                    log_message(f"Window CONFIRM found and ready: {win32gui.GetWindowText(new_new_confirmation_window)}")
+                    activate_window(new_new_confirmation_window)
+                    win32gui.PostMessage(new_new_confirmation_window, win32con.WM_KEYDOWN, win32con.VK_RETURN, 0)
+                    win32gui.PostMessage(new_new_confirmation_window, win32con.WM_KEYUP, win32con.VK_RETURN, 0)
+                    log_message("Enter key sent (SAVED?)")
 
-                log_message("postmessage Ctrl+S sent to Bazis window")
-                time.sleep(0.1)
-
-
-                save_bazis_file(new_main_window)
-                log_message("Стандартный ID для команды Save в Windows sent to Bazis window")
-                time.sleep(0.1)
-
-                save_bazis_file2(new_main_window)
-                log_message("keyboard lib команды Save sent to Bazis window")
-                time.sleep(0.1)
-
-                save_bazis_file3(new_main_window)
-                log_message("SendInput команды Save sent to Bazis window")
-                time.sleep(0.1)
-
-                save_bazis_file4(new_main_window)
-                log_message("4 команды Save sent to Bazis window")
-                time.sleep(0.1)
-
-                save_bazis_file5(new_main_window)
-                log_message("5 команды Save sent to Bazis window")
-                time.sleep(0.1)
-
-                # save_bazis_file6(new_main_window)
-                # log_message("6 команды Save sent to Bazis window")
-                # time.sleep(0.1)
-                
+                time.sleep(3)
                 
                 new_mod_time = os.path.getmtime(bazis_file_path)
                 log_message(f"new_mod_time: {new_mod_time} > initial_mod_time: {new_mod_time > initial_mod_time}")
