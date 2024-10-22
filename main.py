@@ -9,12 +9,7 @@ import os
 import json
 import shutil
 import requests
-
-import winreg
-import ctypes
-from ctypes import wintypes
 import win32security
-
 import win32api
 import ntsecuritycon as con
 
@@ -51,9 +46,7 @@ SUCCESS_FILE_TO_BAZIS = "bazis.b3d"
 MAIN_ICON = "main_icon.jpg"
 ICON_SIZE = 512
 
-
 TIMEOUT = 240
-
 
 
 def grant_full_control(file_path):
@@ -146,11 +139,6 @@ def manage_hasp_ini(enable_crack):
         
     log_message(f"Current state: Hasp.ini {'exists' if os.path.exists(roaming_hasp_ini) else 'does not exist'} in Roaming folder")
 
-def ensure_window_desktop():
-    startupinfo = subprocess.STARTUPINFO()
-    startupinfo.lpDesktop = "winsta0\\default"
-    return startupinfo
-
 def start_bazis(pirate_mode, project_id, script=CONVERTER_FROM_BAZIS_SCRIPT):
     find_and_kill_codemeter()
 
@@ -163,14 +151,8 @@ def start_bazis(pirate_mode, project_id, script=CONVERTER_FROM_BAZIS_SCRIPT):
 
     log_message(f"Using Bazis version: {bazis_app}", IdProject=project_id)
     log_message(f"Using script: {script}")
-
-    if (script == CONVERTER_FROM_BAZIS_SCRIPT):
-        return subprocess.Popen([bazis_app, "--eval", script])
-
-    startupinfo = ensure_window_desktop()
-    return subprocess.Popen([bazis_app, "--eval", script], 
-                          startupinfo=startupinfo,
-                          creationflags=win32con.CREATE_NEW_CONSOLE)
+    
+    return subprocess.Popen([bazis_app, "--eval", script])
 
 def activate_window(hwnd):
     shell = win32com.client.Dispatch("WScript.Shell")
@@ -248,7 +230,6 @@ def find_bazis_window(pid):
 
                 elif 'Подтверждение' in title or 'Confirmation' in title:
                     confirmation_window[0] = hwnd
-                    log_message(f"Found Confirmation Confirmation Confirmation with PID {pid}: {title}")
                     raise StopIteration
                 
         return True
@@ -375,177 +356,6 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
     kill_bazis(bazis_process)
 
     return False
-
-
-def save_bazis_file4(hwnd):
-    """
-    Попытка сохранить через SendMessage напрямую
-    """
-    try:
-        # Константы Windows
-        WM_COMMAND = 0x0111
-        ID_FILE_SAVE = 0xE103  # Стандартный ID для Save
-        WM_SYSCOMMAND = 0x0112
-        SC_RESTORE = 0xF120    # Восстановить окно
-
-        # Сначала пробуем восстановить окно
-        win32gui.SendMessage(hwnd, WM_SYSCOMMAND, SC_RESTORE, 0)
-        time.sleep(0.5)
-
-        # Отправляем команду Save
-        win32gui.SendMessage(hwnd, WM_COMMAND, ID_FILE_SAVE, 0)
-        time.sleep(0.5)
-
-        log_message("SendMessage save command sent")
-        return True
-    except Exception as e:
-        log_message(f"Error in SendMessage save: {str(e)}")
-        return False
-
-def save_bazis_file5(hwnd):
-    """
-    Попытка через UI Automation
-    """
-    try:
-        import uiautomation as auto
-        
-        # Находим окно через UI Automation
-        window = auto.ControlFromHandle(hwnd)
-        if window:
-            # Ищем кнопку или меню Save
-            save_button = window.ButtonControl(Name="Save")
-            if save_button:
-                save_button.Click()
-                log_message("UI Automation save clicked")
-                return True
-        return False
-    except Exception as e:
-        log_message(f"Error in UI Automation save: {str(e)}")
-        return False
-
-def save_bazis_file(hwnd):
-    # Константы для команды Save
-    WM_COMMAND = 0x0111
-    ID_FILE_SAVE = 0xE103  # Стандартный ID для команды Save в Windows
-
-    log_message(f"Trying to save file through WM_COMMAND...")
-    try:
-        # Отправляем команду Save напрямую окну
-        win32gui.PostMessage(hwnd, WM_COMMAND, ID_FILE_SAVE, 0)
-        log_message("Save command sent successfully")
-        return True
-    except Exception as e:
-        log_message(f"Error sending save command: {str(e)}")
-        return False
-
-def save_bazis_file2(hwnd):
-    try:
-        import keyboard
-        log_message("Trying to save using keyboard library...")
-        
-        # Активируем окно более мягким способом
-        shell = win32com.client.Dispatch("WScript.Shell")
-        window_title = win32gui.GetWindowText(hwnd)
-        shell.AppActivate(window_title)
-        time.sleep(0.5)
-
-        # Эмулируем нажатие Ctrl+S
-        keyboard.press('ctrl')
-        time.sleep(0.1)
-        keyboard.press('s')
-        time.sleep(0.1)
-        keyboard.release('s')
-        time.sleep(0.1)
-        keyboard.release('ctrl')
-        
-        log_message("Keyboard save command sent")
-        
-    except Exception as e:
-        log_message(f"Error in keyboard save: {str(e)}")
-        
-        # Запасной вариант - через WM_COMMAND
-        try:
-            WM_COMMAND = 0x0111
-            ID_FILE_SAVE = 0xE103
-            win32gui.PostMessage(hwnd, WM_COMMAND, ID_FILE_SAVE, 0)
-            log_message("Backup save command sent via WM_COMMAND")
-        except Exception as e2:
-            log_message(f"Error in backup save: {str(e2)}")
-
-def save_bazis_file3(hwnd):
-    import ctypes
-    from ctypes import wintypes
-    
-    # Определяем структуры для SendInput
-    KEYEVENTF_KEYUP = 0x0002
-    INPUT_KEYBOARD = 1
-
-    PUL = ctypes.POINTER(ctypes.c_ulong)
-    class KeyBdInput(ctypes.Structure):
-        _fields_ = [("wVk", ctypes.c_ushort),
-                   ("wScan", ctypes.c_ushort),
-                   ("dwFlags", ctypes.c_ulong),
-                   ("time", ctypes.c_ulong),
-                   ("dwExtraInfo", PUL)]
-
-    class HardwareInput(ctypes.Structure):
-        _fields_ = [("uMsg", ctypes.c_ulong),
-                   ("wParamL", ctypes.c_short),
-                   ("wParamH", ctypes.c_ushort)]
-
-    class MouseInput(ctypes.Structure):
-        _fields_ = [("dx", ctypes.c_long),
-                   ("dy", ctypes.c_long),
-                   ("mouseData", ctypes.c_ulong),
-                   ("dwFlags", ctypes.c_ulong),
-                   ("time",ctypes.c_ulong),
-                   ("dwExtraInfo", PUL)]
-
-    class Input_I(ctypes.Union):
-        _fields_ = [("ki", KeyBdInput),
-                   ("mi", MouseInput),
-                   ("hi", HardwareInput)]
-
-    class Input(ctypes.Structure):
-        _fields_ = [("type", ctypes.c_ulong),
-                   ("ii", Input_I)]
-
-    def press_key(hexKeyCode):
-        extra = ctypes.c_ulong(0)
-        ii_ = Input_I()
-        ii_.ki = KeyBdInput(hexKeyCode, 0x48, 0, 0, ctypes.pointer(extra))
-        x = Input(ctypes.c_ulong(1), ii_)
-        ctypes.windll.user32.SendInput(1, ctypes.pointer(x), ctypes.sizeof(x))
-
-    def release_key(hexKeyCode):
-        extra = ctypes.c_ulong(0)
-        ii_ = Input_I()
-        ii_.ki = KeyBdInput(hexKeyCode, 0x48, KEYEVENTF_KEYUP, 0, ctypes.pointer(extra))
-        x = Input(ctypes.c_ulong(1), ii_)
-        ctypes.windll.user32.SendInput(1, ctypes.pointer(x), ctypes.sizeof(x))
-
-    # Активируем окно
-    shell = win32com.client.Dispatch("WScript.Shell")
-    window_title = win32gui.GetWindowText(hwnd)
-    shell.AppActivate(window_title)
-    time.sleep(0.5)
-
-    try:
-        # Нажимаем Ctrl
-        press_key(0x11)  # VK_CONTROL
-        time.sleep(0.1)
-        # Нажимаем S
-        press_key(0x53)  # VK_S
-        time.sleep(0.1)
-        # Отпускаем S
-        release_key(0x53)
-        time.sleep(0.1)
-        # Отпускаем Ctrl
-        release_key(0x11)
-        
-        log_message("SendInput save command sent")
-    except Exception as e:
-        log_message(f"Error in SendInput save: {str(e)}")
 
 
 def insert_material_folders():
