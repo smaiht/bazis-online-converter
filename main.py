@@ -172,11 +172,22 @@ def activate_window(hwnd):
 #     shell.SendKeys('{ENTER}')
 
 def send_ctrl_s(hwnd):
-    shell = win32com.client.Dispatch("WScript.Shell")
-    shell.SendKeys('%') # Alt key
-    win32gui.SetForegroundWindow(hwnd)
-    time.sleep(0.1)
-    shell.SendKeys('^s')
+    # shell = win32com.client.Dispatch("WScript.Shell")
+    # shell.SendKeys('%') # Alt key
+    # win32gui.SetForegroundWindow(hwnd)
+    # time.sleep(0.1)
+    # shell.SendKeys('^s')
+    if win32gui.IsWindow(hwnd) and win32gui.IsWindowVisible(hwnd):
+        log_message(f"Window for saving found and ready: {win32gui.GetWindowText(hwnd)}")
+        activate_window(hwnd)
+        # Отправляем Ctrl
+        win32gui.PostMessage(hwnd, win32con.WM_KEYDOWN, win32con.VK_CONTROL, 0)
+        # Отправляем S
+        win32gui.PostMessage(hwnd, win32con.WM_KEYDOWN, ord('S'), 0)
+        win32gui.PostMessage(hwnd, win32con.WM_KEYUP, ord('S'), 0)
+        # Отпускаем Ctrl
+        win32gui.PostMessage(hwnd, win32con.WM_KEYUP, win32con.VK_CONTROL, 0)
+        log_message("Ctrl+S sent to window")
 
 def kill_bazis(bazis_process):
     try:
