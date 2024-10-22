@@ -350,12 +350,37 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
                 
                 # Отправляем Ctrl+S через SendKeys
                 shell.SendKeys('^s')
-                log_message("Ctrl+S sent to Bazis window")
+                log_message("shell Ctrl+S sent to Bazis window")
                 time.sleep(1)
+
+                time.sleep(0.2)
+
+
+    
+                # Получаем scan code для 'S'
+                scan_code = win32api.MapVirtualKey(ord('S'), 0)
+                
+                # Зажимаем Ctrl
+                win32gui.PostMessage(new_main_window, win32con.WM_KEYDOWN, win32con.VK_CONTROL, 0)
+                time.sleep(0.1)
+                
+                # Нажимаем S с правильным scan code
+                lparam = (scan_code << 16) | 1
+                win32gui.PostMessage(new_main_window, win32con.WM_KEYDOWN, ord('S'), lparam)
+                time.sleep(0.1)
+                win32gui.PostMessage(new_main_window, win32con.WM_KEYUP, ord('S'), lparam | 0xC0000000)
+                
+                time.sleep(0.1)
+                win32gui.PostMessage(new_main_window, win32con.WM_KEYUP, win32con.VK_CONTROL, 0)
+
+                log_message("postmessage Ctrl+S sent to Bazis window")
+                time.sleep(1)
+
+
                 
                 new_mod_time = os.path.getmtime(bazis_file_path)
-                log_message(f"new_mod_time: {new_mod_time}")
-                
+                log_message(f"new_mod_time: {new_mod_time} > initial_mod_time: {new_mod_time > initial_mod_time}")
+
                 if new_mod_time > initial_mod_time:
                     log_message(f"File successfully saved. Modification time changed from {initial_mod_time} to {new_mod_time}", IdProject=id_project)
                     # Remove temporary files and rename to success bazis file
