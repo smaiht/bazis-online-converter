@@ -359,31 +359,23 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
 
 
 
-
-
-
-                save_bazis_file_with_desktop(new_main_window)
-                time.sleep(1)
-
-
-
-
-
-
                 
                 shell = win32com.client.Dispatch("WScript.Shell")
                 
                 activate_window(new_main_window)
-                time.sleep(1)
+                time.sleep(0.1)
                 
                 # Отправляем Ctrl+S через SendKeys
                 shell.SendKeys('^s')
                 log_message("shell Ctrl+S sent to Bazis window")
-                time.sleep(1)
+                time.sleep(0.1)
 
                 time.sleep(0.2)
 
+                import uiautomation as auto
 
+                window = auto.WindowControl(handle=new_main_window)
+                window.SendKeys('{Ctrl}s')
     
                 # Получаем scan code для 'S'
                 scan_code = win32api.MapVirtualKey(ord('S'), 0)
@@ -402,20 +394,20 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
                 win32gui.PostMessage(new_main_window, win32con.WM_KEYUP, win32con.VK_CONTROL, 0)
 
                 log_message("postmessage Ctrl+S sent to Bazis window")
-                time.sleep(1)
+                time.sleep(0.1)
 
 
                 save_bazis_file(new_main_window)
                 log_message("Стандартный ID для команды Save в Windows sent to Bazis window")
-                time.sleep(1)
+                time.sleep(0.1)
 
                 save_bazis_file2(new_main_window)
                 log_message("keyboard lib команды Save sent to Bazis window")
-                time.sleep(1)
+                time.sleep(0.1)
 
                 save_bazis_file3(new_main_window)
                 log_message("SendInput команды Save sent to Bazis window")
-                time.sleep(1)
+                time.sleep(0.1)
                 
                 
                 new_mod_time = os.path.getmtime(bazis_file_path)
@@ -440,59 +432,6 @@ def process_folder_to_bazis(folder_path, id_project, id_calculation):
 
     return False
 
-
-def save_bazis_file_with_desktop(hwnd):
-    log_message("Starting save operation with UIPI bypass...")
-    
-    try:
-        # Получаем текущий процесс
-        current_process = win32api.GetCurrentProcess()
-        
-        # Изменяем токен процесса для обхода UIPI
-        token = win32security.OpenProcessToken(
-            current_process,
-            win32security.TOKEN_ALL_ACCESS
-        )
-        
-        # Включаем UIAccess привилегию
-        ui_access_sid = win32security.CreateWellKnownSid(
-            win32security.WinBuiltinUsersSid
-        )
-        
-        # Создаем новый токен с повышенными привилегиями
-        new_token = win32security.DuplicateTokenEx(
-            token,
-            win32security.MAXIMUM_ALLOWED,
-            None,
-            win32security.SecurityImpersonation,
-            win32security.TokenPrimary
-        )
-        
-        # Устанавливаем новый токен
-        win32security.SetTokenInformation(
-            new_token,
-            win32security.TokenUIAccess,
-            True
-        )
-        
-        # Выполняем сохранение с повышенными привилегиями
-        win32gui.PostMessage(hwnd, win32con.WM_COMMAND, 0xE103, 0)  # Save command
-        time.sleep(0.5)
-        
-        # Симулируем нажатие Ctrl+S
-        win32api.keybd_event(win32con.VK_CONTROL, 0, 0, 0)
-        time.sleep(0.1)
-        win32api.keybd_event(ord('S'), 0, 0, 0)
-        time.sleep(0.1)
-        win32api.keybd_event(ord('S'), 0, win32con.KEYEVENTF_KEYUP, 0)
-        win32api.keybd_event(win32con.VK_CONTROL, 0, win32con.KEYEVENTF_KEYUP, 0)
-        
-        log_message("Save commands sent with elevated privileges")
-        return True
-        
-    except Exception as e:
-        log_message(f"Error in save_bazis_file_with_uipi_bypass: {str(e)}")
-        return False
 
 
 def save_bazis_file(hwnd):
