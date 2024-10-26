@@ -15,6 +15,7 @@ app = FastAPI()
 
 INPUTS_TO_BAZIS = "inputs_to_bazis"
 INPUTS_FROM_BAZIS = "inputs_from_bazis"
+INPUTS_FROM_PRO100 = "inputs_from_pro100"
 
 TEMP_DIR = "temp"
 ERROR_DIR = "errors"
@@ -45,8 +46,17 @@ async def view_logs():
 async def retry(id_project: str):
     log_message(f"Got request to retry converting project: {id_project}", IdProject=id_project, tg=True)
     error_folder = os.path.join(ERROR_DIR, id_project)
-    input_folder = os.path.join(INPUTS_FROM_BAZIS, id_project)
+    # input_folder = os.path.join(INPUTS_FROM_BAZIS, id_project)
     
+    # Определяем целевую папку на основе наличия "_" в id_project
+    if "_" in id_project:
+        input_folder = os.path.join(INPUTS_TO_BAZIS, id_project)
+        log_message(f"Project contains '_', will be moved to {INPUTS_TO_BAZIS}", IdProject=id_project)
+    else:
+        input_folder = os.path.join(INPUTS_FROM_BAZIS, id_project)
+        log_message(f"Project does not contain '_', will be moved to {INPUTS_FROM_BAZIS}", IdProject=id_project)
+
+
     if not os.path.exists(error_folder):
         log_message(f"Project {id_project} not found in ERRORS folder", IdProject=id_project, tg=True)
     
@@ -190,6 +200,69 @@ async def create_upload_files(files: List[UploadFile] = File(...), user_data: st
         log_message(f"(to bazis) Cleaned up temporary folder: {temp_folder_path}")
         shutil.rmtree(temp_folder_path, ignore_errors=True)
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/upload_pro100_project/")
+async def create_upload_pro100_files(files: List[UploadFile] = File(...), user_data: str = Form(...)):
+    try:
+        log_message("\n\n(from pro100) New request received")
+
+        # Parse user_data
+        user_data_dict = json.loads(user_data)
+        log_message(f"Received user data: {user_data_dict}")
+        
+        # Use IdProject from user_data if it exists, otherwise generate a new UUID
+        folder_id = user_data_dict.get('IdProject', str(uuid.uuid4()))
+
+        # Ensure IdProject is in user_data_dict
+        user_data_dict['IdProject'] = folder_id
+        
+        temp_folder_path = os.path.join(TEMP_DIR, folder_id)
+        os.makedirs(temp_folder_path, exist_ok=True)
+        log_message(f"Created folder: {temp_folder_path}")
+
+        # Flag to check if we've renamed a .sto file
+        sto_file_renamed = False
+
+        # Save files
+        for file in files:
+            file_location = os.path.join(temp_folder_path, file.filename)
+            with open(file_location, "wb+") as file_object:
+                file_object.write(await file.read())
+            log_message(f"Saved file: {file.filename}")
+
+            # Rename the first .sto file to model.sto
+            if not sto_file_renamed and file.filename.lower().endswith('.sto'):
+                new_file_location = os.path.join(temp_folder_path, "model.sto")
+                user_data_dict['ModelName'] = file.filename[:-4] # ".sto" = 4 symbols
+                log_message(f"Renamed {file.filename} to model.sto")
+                os.rename(file_location, new_file_location)
+                sto_file_renamed = True
+
+        # Save user_data.json
+        user_data_path = os.path.join(temp_folder_path, "user_data.json")
+        with open(user_data_path, "w") as user_data_file:
+            json.dump(user_data_dict, user_data_file)
+        log_message("Saved user_data.json")
+
+        # Move the completed folder to INPUTS_FROM_BAZIS
+        final_folder_path = os.path.join(INPUTS_FROM_PRO100, folder_id)
+        if os.path.exists(final_folder_path):
+            shutil.rmtree(final_folder_path)
+        shutil.move(temp_folder_path, final_folder_path)
+        log_message(f"Moved processed folder to: {final_folder_path}")
+
+        log_message(f"Files uploaded successfully to folder {final_folder_path}")
+        return JSONResponse(content={"message": f"Files uploaded successfully to folder {final_folder_path}"}, status_code=200)
+
+    except Exception as e:
+        log_message(f"Error processing request: {str(e)}", level="ERROR")
+        
+        log_message(f"Cleaned up temporary folder: {temp_folder_path}")
+        shutil.rmtree(temp_folder_path, ignore_errors=True)
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 
 
 # Manage superusers

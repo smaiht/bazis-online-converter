@@ -13,6 +13,8 @@ import win32security
 import win32api
 import ntsecuritycon as con
 
+from pro100 import main as convert_pro100 
+
 from PIL import Image
 from dotenv import load_dotenv
 
@@ -21,6 +23,7 @@ from logger import log_message, log_folder_check
 load_dotenv()
 BAZIS_PATH = os.getenv('BAZIS_PATH')
 BAZIS_PIRATE_PATH = os.getenv('BAZIS_PIRATE_PATH')
+PRO100_PATH = os.getenv('PRO100_PATH')
 
 BAZIS_CRACK_FILE_PATH = os.getenv('BAZIS_CRACK_FILE_PATH')
 APPDATA_ROAMING_FOLDER_PATH = os.getenv('APPDATA_ROAMING_FOLDER_PATH')
@@ -35,13 +38,16 @@ CONVERTER_TO_BAZIS_SCRIPT = "./convertVariantToBazis.js"
 
 INPUTS_TO_BAZIS = "inputs_to_bazis"
 INPUTS_FROM_BAZIS = "inputs_from_bazis"
+INPUTS_FROM_PRO100 = "inputs_from_pro100"
 
 PROCESSING_DIR = "processings"
 ERROR_DIR = "errors"
 
 INPUT_MODEL = "model.b3d"
+INPUT_PRO100_MODEL = "model.sto"
 INPUT_DATA = "user_data.json"
 SUCCESS_FILE_FROM_BAZIS = "project.s123proj"
+SUCCESS_FILE_FROM_PRO100 = "project.s123proj"
 SUCCESS_FILE_TO_BAZIS = "bazis.b3d"
 MAIN_ICON = "main_icon.jpg"
 ICON_SIZE = 512
@@ -284,6 +290,30 @@ def process_folder(folder_path, pirate_mode, project_id):
 
     return False
 
+
+def process_folder_from_pro100(folder_path, project_id):
+    remove_previous_data()
+    copy_to_script_dir(folder_path)
+
+    log_message(f"Starting pro100...")
+    
+    pro100_process = subprocess.Popen([PRO100_PATH])
+
+    time.sleep(15)
+    
+    convert_pro100()
+
+    try:
+        pro100_process.terminate()
+        pro100_process.wait(timeout = 3)
+    except subprocess.TimeoutExpired:
+        log_message('pro100_process did not terminate gracefully, forcing...')
+        pro100_process.kill()
+    
+    log_message('pro100_process terminated')
+
+    return True
+
 def process_folder_to_bazis(folder_path, id_project, id_calculation):
     remove_previous_data()
     copy_to_script_dir(folder_path)
@@ -393,7 +423,7 @@ def send_project_to_dotnet(from_bazis = True):
 
         for filename in os.listdir(SCRIPT_DIR):
             file_path = os.path.join(SCRIPT_DIR, filename)
-            if os.path.isfile(file_path) and filename not in ['.gitignore', INPUT_DATA, INPUT_MODEL]:
+            if os.path.isfile(file_path) and filename not in ['.gitignore', INPUT_DATA, INPUT_MODEL, INPUT_PRO100_MODEL]:
                 files.append(('Files', (filename, open(file_path, 'rb'), 'application/octet-stream')))
 
     else:
@@ -488,6 +518,50 @@ def main():
 
             time.sleep(1)
         
+        # Check FROM PRO100
+        for folder_name in os.listdir(INPUTS_FROM_PRO100):
+            folder_path = os.path.join(INPUTS_FROM_PRO100, folder_name)
+
+            if os.path.isdir(folder_path):
+                log_message(f"\n\n\n(from pro100) Found folder to process: {folder_name}")
+                log_message(f"Starting processing project...", IdProject=folder_name)
+
+                # move to processings
+                processing_path = os.path.join(PROCESSING_DIR, folder_name)
+                if os.path.exists(processing_path):
+                    shutil.rmtree(processing_path)
+                shutil.move(folder_path, processing_path)
+                log_message(f"Moved folder to processing: {processing_path}")
+
+
+                if process_folder_from_pro100(processing_path, folder_name):
+                    log_message("Folder processed successfully")
+
+                    # insert_material_folders()
+                    # log_message("Material Folders IDs inserted successfully", IdProject=folder_name)
+
+                    log_message("Trying send to .NET ...")
+                    # Send to dotnet
+                    if send_project_to_dotnet():
+                        log_message("Data sent to .NET successfully", IdProject=folder_name)
+                        shutil.rmtree(processing_path)
+                        log_message(f"Removed processing folder: {processing_path}")
+                    else:
+                        log_message("Failed to send to .NET, moving to ERRORS", "ERROR", IdProject=folder_name, tg=True)
+                        error_path = os.path.join(ERROR_DIR, folder_name)
+                        if os.path.exists(error_path):
+                            shutil.rmtree(error_path)
+                        shutil.move(processing_path, error_path)
+                        log_message(f"Moved to error folder: {error_path}")
+                else:
+                    log_message("Failed to process folder, moving to ERRORS", "ERROR")
+                    error_path = os.path.join(ERROR_DIR, folder_name)
+                    if os.path.exists(error_path):
+                        shutil.rmtree(error_path)
+                    shutil.move(processing_path, error_path)
+                    log_message(f"Moved to error folder: {error_path}")
+
+            time.sleep(1)
 
         # Check TO BAZIS
         for folder_name in os.listdir(INPUTS_TO_BAZIS):
