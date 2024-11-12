@@ -43,6 +43,34 @@ load_dotenv()
 
 time.sleep(2)
 
+def analyze_panel(entity):
+    # Получаем базовые размеры
+    base_x = entity.dimensions.x
+    base_y = entity.dimensions.y 
+    base_z = entity.dimensions.z
+    
+    # Получаем целевые размеры
+    target_width = entity.width
+    target_height = entity.length
+    target_depth = entity.depth
+    
+    print(f"\nАнализ детали {entity.name}:")
+    print(f"Базовые размеры (x,y,z): {base_x}, {base_y}, {base_z}")
+    print(f"Целевые размеры (w,h,d): {target_width}, {target_height}, {target_depth}")
+    
+    # Определяем какая это ориентация
+    if abs(base_x - target_depth) < 0.1 and abs(base_y - target_width) < 0.1 and abs(base_z - target_height) < 0.1:
+        print("Это вертикальная панель, повернутая на 90° вокруг Y")
+        # entity.rotate(0, 90, 0)
+    elif abs(base_x - target_width) < 0.1 and abs(base_y - target_depth) < 0.1 and abs(base_z - target_height) < 0.1:
+        print("Это вертикальная панель")
+        # entity.rotate(0, 0, 0)
+    elif abs(base_x - target_depth) < 0.1 and abs(base_y - target_height) < 0.1 and abs(base_z - target_width) < 0.1:
+        print("Это горизонтальная панель, повернутая на 90°")
+        # entity.rotate(90, 90, 0)
+    # и так далее для всех возможных ориентаций
+
+
 
 psto_app = win32com.client.Dispatch("P100.Application")
 
@@ -58,8 +86,68 @@ print("Project attributes:")
         # print("selection attributes:")
         # # pprint (dir(selection))
 
-        # for i, entity in enumerate(project.Entities):
-        #     if entity.entityClass == 'IGroupEntity':
+
+import math 
+def normalize_panel_rotation(entity):
+    base_x = entity.dimensions.x
+    base_y = entity.dimensions.y 
+    base_z = entity.dimensions.z
+    
+    target_width = entity.width
+    target_height = entity.length
+    target_depth = entity.depth
+    
+    # print(f"\nНормализация детали:")
+    # print(f"Базовые размеры (x,y,z): {base_x}, {base_y}, {base_z}")
+    # print(f"Целевые размеры (w,h,d): {target_width}, {target_height}, {target_depth}")
+    
+    eps = 0.001  # погрешность для сравнения float
+    RAD_90 = math.pi / 2
+    
+    if (abs(base_x - target_width) < eps and 
+        abs(base_y - target_height) < eps and 
+        abs(base_z - target_depth) < eps):
+        print("Нормальная панель - не поворачиваем.")
+        # entity.rotate(0, 0, 0)
+        return
+        
+    if (abs(base_x - target_depth) < eps and 
+        abs(base_y - target_height) < eps and 
+        abs(base_z - target_width) < eps):
+        print("Боковая панель - поворачиваем на 90° вокруг Y")
+        entity.rotate(0, RAD_90, 0)
+        return
+
+    if (abs(base_x - target_width) < eps and 
+        abs(base_y - target_depth) < eps and 
+        abs(base_z - target_height) < eps):
+        print("Лежачая панель - поворачиваем на 90° вокруг X")
+        entity.rotate(RAD_90, 0, 0)
+        return
+        
+
+    # print("ВНИМАНИЕ: Не удалось определить правильный поворот!")
+    # print("Требуется добавить новый случай в функцию")
+
+# Применяем ко всем панелям
+for entity in project.Entities:
+    if hasattr(entity, 'dimensions'):
+        normalize_panel_rotation(entity)
+
+
+
+# for i, entity in enumerate(project.Entities):
+#     if hasattr(entity, 'dimensions'):  # проверяем что это панель
+#         analyze_panel(entity)
+        # print("selection attributes:")
+        # print( entity.rotation.x)
+        # print( entity.rotation.y)
+        # print( entity.rotation.z)
+        # print( entity.dimensions.x)
+        # print( entity.dimensions.y)
+        # print( entity.dimensions.z)
+        # print( entity.depth)
+    # if entity.entityClass == 'IGroupEntity':
 
         #         print("IGroupEntity attributes:")
         #         selection.add(entity)
@@ -69,6 +157,7 @@ print("Project attributes:")
 
 
 
+# selection = psto_app.Project.selection
 
 
 

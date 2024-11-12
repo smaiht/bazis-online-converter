@@ -10,6 +10,7 @@ import re
 import time
 
 import subprocess
+import math
 
 def new_guid():
     return str(uuid.uuid4())
@@ -155,6 +156,45 @@ def ungroup_all(project):
         selection.ungroup()
 
 
+def normalize_panel_rotation(entity):
+    base_x = entity.dimensions.x
+    base_y = entity.dimensions.y 
+    base_z = entity.dimensions.z
+    
+    target_width = entity.width
+    target_height = entity.length
+    target_depth = entity.depth
+    
+    # print(f"\nНормализация детали:")
+    # print(f"Базовые размеры (x,y,z): {base_x}, {base_y}, {base_z}")
+    # print(f"Целевые размеры (w,h,d): {target_width}, {target_height}, {target_depth}")
+    
+    eps = 0.001  # погрешность для сравнения float
+    RAD_90 = math.pi / 2
+    
+    if (abs(base_x - target_width) < eps and 
+        abs(base_y - target_height) < eps and 
+        abs(base_z - target_depth) < eps):
+        # print("Нормальная панель - не поворачиваем.")
+        # entity.rotate(0, 0, 0)
+        return
+        
+    if (abs(base_x - target_depth) < eps and 
+        abs(base_y - target_height) < eps and 
+        abs(base_z - target_width) < eps):
+        # print("Боковая панель - поворачиваем на 90° вокруг Y")
+        entity.rotate(0, RAD_90, 0)
+        return
+
+    if (abs(base_x - target_width) < eps and 
+        abs(base_y - target_depth) < eps and 
+        abs(base_z - target_height) < eps):
+        # print("Лежачая панель - поворачиваем на 90° вокруг X")
+        entity.rotate(RAD_90, 0, 0)
+        return
+
+
+
 def main(pro100_process):
     components = []
     inputs = []
@@ -194,6 +234,8 @@ def main(pro100_process):
 
         # Process entities and collect materials
         for i, entity in enumerate(project.Entities):
+            normalize_panel_rotation(entity)
+
             material_name = entity.material.textureName
             # print(material_name)
             
