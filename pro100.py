@@ -255,7 +255,7 @@ def main(pro100_process):
 
         # Process entities and collect materials
         for i, entity in enumerate(project.Entities):
-            normalize_panel_rotation(entity)
+            # normalize_panel_rotation(entity)
 
             material_name = entity.material.textureName
             # print(material_name)

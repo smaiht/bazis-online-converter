@@ -119,24 +119,27 @@ def normalize_panel_rotation(entity):
     eps = 0.001  # погрешность для сравнения float
     RAD_90 = math.pi / 2
     
+    print(f"Базовые размеры (x,y,z): {base_x}, {base_y}, {base_z}")
+    print(f"Целевые размеры (w,h,d): {target_width}, {target_height}, {target_depth}")
+    
     if (abs(base_x - target_width) < eps and 
         abs(base_y - target_height) < eps and 
         abs(base_z - target_depth) < eps):
-        # print("Нормальная панель - не поворачиваем.")
+        print("Нормальная панель - не поворачиваем.")
         # entity.rotate(0, 0, 0)
         return
         
     if (abs(base_x - target_depth) < eps and 
         abs(base_y - target_height) < eps and 
         abs(base_z - target_width) < eps):
-        # print("Боковая панель - поворачиваем на 90° вокруг Y")
+        print("Боковая панель - поворачиваем на 90° вокруг Y")
         entity.rotate(0, RAD_90, 0)
         return
 
     if (abs(base_x - target_width) < eps and 
         abs(base_y - target_depth) < eps and 
         abs(base_z - target_height) < eps):
-        # print("Лежачая панель - поворачиваем на 90° вокруг X")
+        print("Лежачая панель - поворачиваем на 90° вокруг X")
         entity.rotate(RAD_90, 0, 0)
         return
 
@@ -144,7 +147,7 @@ def normalize_panel_rotation(entity):
     if (abs(base_x - target_height) < eps and
         abs(base_y - target_depth) < eps and
         abs(base_z - target_width) < eps):
-        # print("Хз что это1 - поворачиваем на 90° вокруг Z")
+        print("Хз что это1 - поворачиваем на 90° вокруг Z")
         entity.rotate(0, 0, RAD_90)
         return
 
@@ -152,15 +155,15 @@ def normalize_panel_rotation(entity):
     if (abs(base_x - target_height) < eps and
         abs(base_y - target_width) < eps and
         abs(base_z - target_depth) < eps):
-        # print("Хз что это2 - поворачиваем на 90° вокруг Y")
+        print("Хз что это2 - поворачиваем на 90° вокруг Y")
         entity.rotate(0, RAD_90, 0)
         return
 
 
-    # print("ВНИМАНИЕ: Не удалось определить правильный поворот!")
-    # print("Требуется добавить новый случай в функцию")
-    # print(f"Базовые размеры (x,y,z): {base_x}, {base_y}, {base_z}")
-    # print(f"Целевые размеры (w,h,d): {target_width}, {target_height}, {target_depth}")
+    print("ВНИМАНИЕ: Не удалось определить правильный поворот!")
+    print("Требуется добавить новый случай в функцию")
+    print(f"Базовые размеры (x,y,z): {base_x}, {base_y}, {base_z}")
+    print(f"Целевые размеры (w,h,d): {target_width}, {target_height}, {target_depth}")
 
 # Применяем ко всем панелям
 for entity in project.Entities:
@@ -169,17 +172,21 @@ for entity in project.Entities:
 
 
 
-# for i, entity in enumerate(project.Entities):
-#     if hasattr(entity, 'dimensions'):  # проверяем что это панель
-#         analyze_panel(entity)
-        # print("selection attributes:")
-        # print( entity.rotation.x)
-        # print( entity.rotation.y)
-        # print( entity.rotation.z)
-        # print( entity.dimensions.x)
-        # print( entity.dimensions.y)
-        # print( entity.dimensions.z)
-        # print( entity.depth)
+for i, entity in enumerate(project.Entities):
+    if hasattr(entity, 'dimensions'):  # проверяем что это панель
+        # analyze_panel(entity)
+        print("selection attributes:")
+        print( entity.rotation.x)
+        print( entity.rotation.y)
+        print( entity.rotation.z)
+        print("selection attributes:")
+        print( entity.dimensions.x)
+        print( entity.dimensions.y)
+        print( entity.dimensions.z)
+        print("selection attributes:")
+        print( entity.width)
+        print( entity.length)
+        print( entity.depth)
     # if entity.entityClass == 'IGroupEntity':
 
         #         print("IGroupEntity attributes:")
