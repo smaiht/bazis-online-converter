@@ -180,6 +180,16 @@ def kill_bazis(bazis_process):
     
     log_message('Bazis process terminated')
 
+def kill_pro100(pro100_process):
+    try:
+        pro100_process.terminate()
+        pro100_process.wait(timeout = 3)
+    except subprocess.TimeoutExpired:
+        log_message('pro100_process did not terminate gracefully, forcing...')
+        pro100_process.kill()
+    
+    log_message('pro100_process terminated')
+
 
 
 def copy_to_script_dir(source_folder):
@@ -301,16 +311,9 @@ def process_folder_from_pro100(folder_path, project_id):
 
     time.sleep(15)
     
-    convert_pro100()
+    convert_pro100(pro100_process)
 
-    try:
-        pro100_process.terminate()
-        pro100_process.wait(timeout = 3)
-    except subprocess.TimeoutExpired:
-        log_message('pro100_process did not terminate gracefully, forcing...')
-        pro100_process.kill()
-    
-    log_message('pro100_process terminated')
+    # kill_pro100(pro100_process)
 
     return True
 

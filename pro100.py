@@ -9,6 +9,7 @@ import uuid
 import re
 import time
 
+import subprocess
 
 def new_guid():
     return str(uuid.uuid4())
@@ -138,7 +139,7 @@ def create_set_material_node(component_paths, input_node_guid, y_position, order
     }
 
 
-def main():
+def main(pro100_process):
     components = []
     inputs = []
     nodes = []
@@ -347,6 +348,17 @@ def main():
 
     except Exception as e:
         print(f"An error occurred: {str(e)}")
+
+    finally:
+        print('finally')
+        try:
+            pro100_process.terminate()
+            pro100_process.wait(timeout = 3)
+        except subprocess.TimeoutExpired:
+            print('pro100_process did not terminate gracefully, forcing...')
+            pro100_process.kill()
+        
+        print('pro100_process terminated')
 
 if __name__ == "__main__":
     main()
