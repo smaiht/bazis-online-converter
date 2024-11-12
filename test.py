@@ -140,13 +140,13 @@ def normalize_panel_rotation(entity):
         entity.rotate(RAD_90, 0, 0)
         return
 
-    # Случай 4: Повернутая на Z и Y
-    if (abs(base_x - target_height) < eps and
-        abs(base_y - target_depth) < eps and
-        abs(base_z - target_width) < eps):
-        print("Повернутая панель - поворачиваем на 90° вокруг Z, затем 90° вокруг Y")
-        entity.rotate(0, RAD_90, RAD_90)
-        return
+    # # Случай 4: Повернутая на Z и Y
+    # if (abs(base_x - target_height) < eps and
+    #     abs(base_y - target_depth) < eps and
+    #     abs(base_z - target_width) < eps):
+    #     print("Повернутая панель - поворачиваем на 90° вокруг Z, затем 90° вокруг Y")
+    #     entity.rotate(0, RAD_90, RAD_90)
+    #     return
 
     # Случай 5: x->height, y->width, z->depth
     if (abs(base_x - target_height) < eps and
@@ -156,13 +156,13 @@ def normalize_panel_rotation(entity):
         entity.rotate(0, 0, RAD_90)
         return
 
-    # Случай 6: Поменять x и y местами
-    if (abs(base_x - target_height) < eps and
-        abs(base_y - target_width) < eps and
-        abs(base_z - target_depth) < eps):
-        print("Перевернутая панель - поворачиваем на 90° вокруг Z")
-        entity.rotate(0, 0, RAD_90)
-        return
+    # # Случай 6: Поменять x и y местами
+    # if (abs(base_x - target_height) < eps and
+    #     abs(base_y - target_width) < eps and
+    #     abs(base_z - target_depth) < eps):
+    #     print("Перевернутая панель - поворачиваем на 90° вокруг Z")
+    #     entity.rotate(0, 0, RAD_90)
+    #     return
         
 
 
