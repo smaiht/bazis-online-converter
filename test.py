@@ -43,6 +43,22 @@ load_dotenv()
 
 time.sleep(2)
 
+def ungroup_all(project):
+    selection = project.selection
+    while True:
+        found_groups = False
+        selection.clear()
+        
+        for entity in project.Entities:
+            if entity.entityClass == 'IGroupEntity':
+                selection.add(entity)
+                found_groups = True
+        
+        if not found_groups:
+            break
+            
+        selection.ungroup()
+
 def analyze_panel(entity):
     # Получаем базовые размеры
     base_x = entity.dimensions.x
@@ -75,6 +91,7 @@ def analyze_panel(entity):
 psto_app = win32com.client.Dispatch("P100.Application")
 
 project = psto_app.Project
+ungroup_all(project)
 
 print("Application methods:")
 # pprint(dir(psto_app))
@@ -98,8 +115,6 @@ def normalize_panel_rotation(entity):
     target_depth = entity.depth
     
     # print(f"\nНормализация детали:")
-    # print(f"Базовые размеры (x,y,z): {base_x}, {base_y}, {base_z}")
-    # print(f"Целевые размеры (w,h,d): {target_width}, {target_height}, {target_depth}")
     
     eps = 0.001  # погрешность для сравнения float
     RAD_90 = math.pi / 2
@@ -124,10 +139,37 @@ def normalize_panel_rotation(entity):
         print("Лежачая панель - поворачиваем на 90° вокруг X")
         entity.rotate(RAD_90, 0, 0)
         return
+
+    # Случай 4: Повернутая на Z и Y
+    if (abs(base_x - target_height) < eps and
+        abs(base_y - target_depth) < eps and
+        abs(base_z - target_width) < eps):
+        print("Повернутая панель - поворачиваем на 90° вокруг Z, затем 90° вокруг Y")
+        entity.rotate(0, RAD_90, RAD_90)
+        return
+
+    # Случай 5: x->height, y->width, z->depth
+    if (abs(base_x - target_height) < eps and
+        abs(base_y - target_width) < eps and
+        abs(base_z - target_depth) < eps):
+        print("Вертикальная развернутая панель - поворачиваем на 90° вокруг Z")
+        entity.rotate(0, 0, RAD_90)
+        return
+
+    # Случай 6: Поменять x и y местами
+    if (abs(base_x - target_height) < eps and
+        abs(base_y - target_width) < eps and
+        abs(base_z - target_depth) < eps):
+        print("Перевернутая панель - поворачиваем на 90° вокруг Z")
+        entity.rotate(0, 0, RAD_90)
+        return
         
 
-    # print("ВНИМАНИЕ: Не удалось определить правильный поворот!")
-    # print("Требуется добавить новый случай в функцию")
+
+    print("ВНИМАНИЕ: Не удалось определить правильный поворот!")
+    print("Требуется добавить новый случай в функцию")
+    print(f"Базовые размеры (x,y,z): {base_x}, {base_y}, {base_z}")
+    print(f"Целевые размеры (w,h,d): {target_width}, {target_height}, {target_depth}")
 
 # Применяем ко всем панелям
 for entity in project.Entities:
