@@ -138,6 +138,22 @@ def create_set_material_node(component_paths, input_node_guid, y_position, order
         "order": order
     }
 
+def ungroup_all(project):
+    selection = project.selection
+    while True:
+        found_groups = False
+        selection.clear()
+        
+        for entity in project.Entities:
+            if entity.entityClass == 'IGroupEntity':
+                selection.add(entity)
+                found_groups = True
+        
+        if not found_groups:
+            break
+            
+        selection.ungroup()
+
 
 def main(pro100_process):
     components = []
@@ -164,6 +180,7 @@ def main(pro100_process):
         time.sleep(5)
 
 
+        ungroup_all(project)
 
         # Load materials mapping from file
         with open('materials_mapping.json', 'r', encoding='utf-8') as f:

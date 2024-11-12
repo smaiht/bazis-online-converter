@@ -35,10 +35,10 @@ from dotenv import load_dotenv
 import os
 import time
 import win32com.client
+from pprint import pprint
 
 load_dotenv()
-PRO100_PATH = os.getenv('PRO100_PATH')
-
+# PRO100_PATH = os.getenv('PRO100_PATH')
 # pro100_process = subprocess.Popen([PRO100_PATH])
 
 time.sleep(2)
@@ -47,103 +47,133 @@ time.sleep(2)
 psto_app = win32com.client.Dispatch("P100.Application")
 
 project = psto_app.Project
-# project.loadFromFIle('cheche.sto')
-# test = project.getImage(500, 500)
-# project.saveToFile('cheche.jpg')
 
-import os
-import time
-import win32com.client
-import win32gui
-import win32ui
-import win32con
-import win32api
-from ctypes import windll, byref, create_string_buffer, c_void_p
+print("Application methods:")
+# pprint(dir(psto_app))
 
+print("Project attributes:")
+# pprint (dir(project))
+
+        # selection = psto_app.Project.selection
+        # print("selection attributes:")
+        # # pprint (dir(selection))
+
+        # for i, entity in enumerate(project.Entities):
+        #     if entity.entityClass == 'IGroupEntity':
+
+        #         print("IGroupEntity attributes:")
+        #         selection.add(entity)
+        #         # pprint (dir(entity))
+
+        # selection.ungroup()
+
+
+
+
+
+
+#     # material_name = entity.material.textureName
+        # print(1)#.material.textureName)
+        # print(entity.entityClass)#.material.textureName)
+
+
+# # project.loadFromFIle('cheche.sto')
+# # test = project.getImage(500, 500)
+# # project.saveToFile('cheche.jpg')
+
+# import os
+# import time
+# import win32com.client
+# import win32gui
+# import win32ui
+# import win32con
+# import win32api
+# from ctypes import windll, byref, create_string_buffer, c_void_p
+
+# # handle = project.getImage(500, 500)
+# # print(f"Handle получен: {handle}")
+
+# print("Получаем handle...")
 # handle = project.getImage(500, 500)
-# print(f"Handle получен: {handle}")
+# print(f"Handle: {handle} (hex: 0x{handle:X})")
 
-print("Получаем handle...")
-handle = project.getImage(500, 500)
-print(f"Handle: {handle} (hex: 0x{handle:X})")
-
-def check_handle_type(handle):
-    # Список всех типов GDI объектов для проверки
-    gdi_types = {
-        win32con.OBJ_BITMAP: "BITMAP",
-        win32con.OBJ_BRUSH: "BRUSH",
-        win32con.OBJ_DC: "DC",
-        win32con.OBJ_ENHMETADC: "ENHMETADC",
-        win32con.OBJ_ENHMETAFILE: "ENHMETAFILE",
-        win32con.OBJ_FONT: "FONT",
-        win32con.OBJ_MEMDC: "MEMDC",
-        win32con.OBJ_PAL: "PALETTE",
-        win32con.OBJ_PEN: "PEN",
-        win32con.OBJ_REGION: "REGION"
-    }
+# def check_handle_type(handle):
+#     # Список всех типов GDI объектов для проверки
+#     gdi_types = {
+#         win32con.OBJ_BITMAP: "BITMAP",
+#         win32con.OBJ_BRUSH: "BRUSH",
+#         win32con.OBJ_DC: "DC",
+#         win32con.OBJ_ENHMETADC: "ENHMETADC",
+#         win32con.OBJ_ENHMETAFILE: "ENHMETAFILE",
+#         win32con.OBJ_FONT: "FONT",
+#         win32con.OBJ_MEMDC: "MEMDC",
+#         win32con.OBJ_PAL: "PALETTE",
+#         win32con.OBJ_PEN: "PEN",
+#         win32con.OBJ_REGION: "REGION"
+#     }
     
-    print("Проверка типов handle...")
-    for type_id, type_name in gdi_types.items():
-        try:
-            if windll.gdi32.GetObjectType(handle) == type_id:
-                print(f"✓ Это {type_name} (тип {type_id})")
-                return type_id
-        except:
-            continue
+#     print("Проверка типов handle...")
+#     for type_id, type_name in gdi_types.items():
+#         try:
+#             if windll.gdi32.GetObjectType(handle) == type_id:
+#                 print(f"✓ Это {type_name} (тип {type_id})")
+#                 return type_id
+#         except:
+#             continue
     
-    print("Handle не является стандартным GDI объектом")
+#     print("Handle не является стандартным GDI объектом")
     
-    # Проверяем другие возможные типы
-    try:
-        if windll.user32.IsWindow(handle):
-            print("✓ Это WINDOW handle")
-            return "WINDOW"
-    except:
-        pass
+#     # Проверяем другие возможные типы
+#     try:
+#         if windll.user32.IsWindow(handle):
+#             print("✓ Это WINDOW handle")
+#             return "WINDOW"
+#     except:
+#         pass
         
-    try:
-        if win32gui.IsWindow(handle):
-            print("✓ Это WINDOW handle (win32gui)")
-            return "WINDOW"
-    except:
-        pass
+#     try:
+#         if win32gui.IsWindow(handle):
+#             print("✓ Это WINDOW handle (win32gui)")
+#             return "WINDOW"
+#     except:
+#         pass
 
-    # Пробуем получить информацию о процессе
-    try:
-        process_id = windll.kernel32.GetProcessId(handle)
-        if process_id:
-            print(f"✓ Это handle процесса (PID: {process_id})")
-            return "PROCESS"
-    except:
-        pass
+#     # Пробуем получить информацию о процессе
+#     try:
+#         process_id = windll.kernel32.GetProcessId(handle)
+#         if process_id:
+#             print(f"✓ Это handle процесса (PID: {process_id})")
+#             return "PROCESS"
+#     except:
+#         pass
     
-    # Проверяем, может это глобальная память
-    try:
-        size = windll.kernel32.GlobalSize(handle)
-        if size:
-            print(f"✓ Это GLOBAL MEMORY handle (размер: {size} байт)")
-            return "GLOBAL_MEMORY"
-    except:
-        pass
+#     # Проверяем, может это глобальная память
+#     try:
+#         size = windll.kernel32.GlobalSize(handle)
+#         if size:
+#             print(f"✓ Это GLOBAL MEMORY handle (размер: {size} байт)")
+#             return "GLOBAL_MEMORY"
+#     except:
+#         pass
     
-    return None
+#     return None
 
-# Проверяем тип handle
-handle_type = check_handle_type(handle)
+# # Проверяем тип handle
+# handle_type = check_handle_type(handle)
 
-if handle_type:
-    print(f"\nОбнаружен тип: {handle_type}")
-else:
-    print("\nНе удалось определить тип handle")
+# if handle_type:
+#     print(f"\nОбнаружен тип: {handle_type}")
+# else:
+#     print("\nНе удалось определить тип handle")
     
-# Дополнительная информация
-print("\nДополнительные проверки:")
-try:
-    print(f"GetLastError: {windll.kernel32.GetLastError()}")
-except:
-    pass
+# # Дополнительная информация
+# print("\nДополнительные проверки:")
+# try:
+#     print(f"GetLastError: {windll.kernel32.GetLastError()}")
+# except:
+#     pass
 
-try:
-    print(f"IsValidHandle: {bool(windll.kernel32.CloseHandle(handle))}")
-except:
-    pass
+# try:
+#     print(f"IsValidHandle: {bool(windll.kernel32.CloseHandle(handle))}")
+# except:
+#     pass
