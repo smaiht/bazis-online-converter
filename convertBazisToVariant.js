@@ -2551,8 +2551,8 @@ Action.Control.SavePicture('results/main_icon.jpg')
 
 // Generate 32 images
 let initialAngleY = 20;
-let angleStep = 360 / 32;
-for (let i = 0; i < 32; i++) {
+let angleStep = 360 / 30;
+for (let i = 0; i < 10; i++) {
     let newAngleY = initialAngleY + (i * angleStep);
     SetCamera(p3dLeft) // always set this shit first, so we could make multiple screenshot from diff angles. Otherwise the script freeezes and all screenshots are the same
     Action.DS.Camera.AngleX = 20;
