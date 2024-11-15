@@ -159,6 +159,14 @@ def ungroup_all(project):
 
 RAD_90 = math.pi / 2
 
+class Rot3D:
+    def __init__(self, x, y, z):
+        self.x = x
+        self.y = y
+        self.z = z
+
+
+
 def normalize_panel_rotation(entity):
     base_x = entity.dimensions.x
     base_y = entity.dimensions.y 
@@ -174,31 +182,32 @@ def normalize_panel_rotation(entity):
         abs(base_y - target_height) < eps and 
         abs(base_z - target_depth) < eps):
         # print("Нормальная панель - не поворачиваем.")
-        return {
-            'x': 0,
-            'y': 0,
-            'z': 0
-        }
+        return Rot3D(
+            0,
+            0,
+            0
+        )
         
     if (abs(base_x - target_depth) < eps and 
         abs(base_y - target_height) < eps and 
         abs(base_z - target_width) < eps):
         # print("Боковая панель - поворачиваем на 90° вокруг Y")
-        return {
-            'x': 0,
-            'y': RAD_90,
-            'z': 0
-        }
+        return Rot3D(
+            0,
+            RAD_90,
+            0
+        )
 
     if (abs(base_x - target_width) < eps and 
         abs(base_y - target_depth) < eps and 
         abs(base_z - target_height) < eps):
         # print("Лежачая панель - поворачиваем на 90° вокруг X")
-        return {
-            'x': RAD_90,
-            'y': 0,
-            'z': 0
-        }
+        return Rot3D(
+            RAD_90,
+            0,
+            0
+        )
+
 
 
 
@@ -211,21 +220,15 @@ def main(pro100_process):
 
     psto_app = win32com.client.Dispatch("P100.Application")
     
-    # time.sleep(22)
-
-
     try:
         if not psto_app.Visible:
             psto_app.FileOpen()
 
         project = psto_app.Project
 
-        
-
         project.loadFromFIle('results/model.sto')
 
         time.sleep(5)
-
 
         ungroup_all(project)
 
@@ -233,16 +236,15 @@ def main(pro100_process):
         with open('materials_mapping.json', 'r', encoding='utf-8') as f:
             sys_mats = json.load(f)
 
-        # project.getImage(500, 500)
-
+        # project.getImage(500, 500) # TODO: ??
 
         # Process entities and collect materials
         for i, entity in enumerate(project.Entities):
-            original_rotation = {
-                'x': entity.rotation.x,
-                'y': entity.rotation.y,
-                'z': entity.rotation.z
-            }
+            original_rotation = Rot3D(
+                entity.rotation.x,
+                entity.rotation.y,
+                entity.rotation.z
+            )
             
             entity.unrotate(
                 original_rotation.x,
@@ -252,11 +254,11 @@ def main(pro100_process):
 
             base_rotation = normalize_panel_rotation(entity)
 
-            new_rotation = {
-                'x': original_rotation.x + base_rotation.x,
-                'y': original_rotation.y + base_rotation.y,
-                'z': original_rotation.z + base_rotation.z
-            }
+            new_rotation = Rot3D(
+                original_rotation.x + base_rotation.x,
+                original_rotation.y + base_rotation.y,
+                original_rotation.z + base_rotation.z
+            )
 
 
 
