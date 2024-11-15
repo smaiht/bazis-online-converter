@@ -208,6 +208,11 @@ def normalize_panel_rotation(entity):
             0
         )
 
+    print("ВНИМАНИЕ: Не удалось определить правильный поворот!")
+    print("Требуется добавить новый случай в функцию")
+    print(f"Базовые размеры (x,y,z): {base_x}, {base_y}, {base_z}")
+    print(f"Целевые размеры (w,h,d): {target_width}, {target_height}, {target_depth}")
+
 
 
 
