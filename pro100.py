@@ -157,6 +157,8 @@ def ungroup_all(project):
 
 
 
+RAD_90 = math.pi / 2
+
 def normalize_panel_rotation(entity):
     base_x = entity.dimensions.x
     base_y = entity.dimensions.y 
@@ -165,54 +167,38 @@ def normalize_panel_rotation(entity):
     target_width = entity.width
     target_height = entity.length
     target_depth = entity.depth
-    
-    # print(f"\nНормализация детали:")
-    
+
     eps = 0.001  # погрешность для сравнения float
-    RAD_90 = math.pi / 2
     
     if (abs(base_x - target_width) < eps and 
         abs(base_y - target_height) < eps and 
         abs(base_z - target_depth) < eps):
         # print("Нормальная панель - не поворачиваем.")
-        # entity.rotate(0, 0, 0)
-        return
+        return {
+            'x': 0,
+            'y': 0,
+            'z': 0
+        }
         
     if (abs(base_x - target_depth) < eps and 
         abs(base_y - target_height) < eps and 
         abs(base_z - target_width) < eps):
         # print("Боковая панель - поворачиваем на 90° вокруг Y")
-        entity.rotate(0, RAD_90, 0)
-        return
+        return {
+            'x': 0,
+            'y': RAD_90,
+            'z': 0
+        }
 
     if (abs(base_x - target_width) < eps and 
         abs(base_y - target_depth) < eps and 
         abs(base_z - target_height) < eps):
         # print("Лежачая панель - поворачиваем на 90° вокруг X")
-        entity.rotate(RAD_90, 0, 0)
-        return
-
-    # Случай 4: x->height, y->depth, z->width
-    if (abs(base_x - target_height) < eps and
-        abs(base_y - target_depth) < eps and
-        abs(base_z - target_width) < eps):
-        # print("Хз что это1 - поворачиваем на 90° вокруг Z")
-        entity.rotate(0, 0, RAD_90)
-        return
-
-    # Случай 5: x->height, y->width, z->depth
-    if (abs(base_x - target_height) < eps and
-        abs(base_y - target_width) < eps and
-        abs(base_z - target_depth) < eps):
-        # print("Хз что это2 - поворачиваем на 90° вокруг Y")
-        entity.rotate(0, RAD_90, 0)
-        return
-
-
-    # print("ВНИМАНИЕ: Не удалось определить правильный поворот!")
-    # print("Требуется добавить новый случай в функцию")
-    # print(f"Базовые размеры (x,y,z): {base_x}, {base_y}, {base_z}")
-    # print(f"Целевые размеры (w,h,d): {target_width}, {target_height}, {target_depth}")
+        return {
+            'x': RAD_90,
+            'y': 0,
+            'z': 0
+        }
 
 
 
@@ -247,23 +233,43 @@ def main(pro100_process):
         with open('materials_mapping.json', 'r', encoding='utf-8') as f:
             sys_mats = json.load(f)
 
-        # print("project attributes:")
-        # pprint (dir(project))
-
         # project.getImage(500, 500)
 
 
         # Process entities and collect materials
         for i, entity in enumerate(project.Entities):
-            # normalize_panel_rotation(entity)
+            original_rotation = {
+                'x': entity.rotation.x,
+                'y': entity.rotation.y,
+                'z': entity.rotation.z
+            }
+            
+            entity.unrotate(
+                original_rotation.x,
+                original_rotation.y, 
+                original_rotation.z
+            )
+
+            base_rotation = normalize_panel_rotation(entity)
+
+            new_rotation = {
+                'x': original_rotation.x + base_rotation.x,
+                'y': original_rotation.y + base_rotation.y,
+                'z': original_rotation.z + base_rotation.z
+            }
+
+
 
             material_name = entity.material.textureName
             # print(material_name)
             
+
+
             # Create component
-            roll = entity.rotation.x * 180/np.pi
-            pitch = entity.rotation.y * 180/np.pi
-            yaw = entity.rotation.z * 180/np.pi
+            roll = new_rotation.x * 180/np.pi
+            pitch = new_rotation.y * 180/np.pi
+            yaw = new_rotation.z * 180/np.pi
+
             r = Rotation.from_euler('yxz', [-pitch, roll, -yaw], degrees=True)
             quaternion = r.as_quat()
 

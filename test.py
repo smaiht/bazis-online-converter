@@ -43,6 +43,11 @@ load_dotenv()
 
 time.sleep(2)
 
+
+
+
+
+
 def ungroup_all(project):
     selection = project.selection
     while True:
@@ -87,6 +92,56 @@ def analyze_panel(entity):
     # и так далее для всех возможных ориентаций
 
 
+import math 
+RAD_90 = math.pi / 2
+
+
+def normalize_panel_rotation(entity):
+    base_x = entity.dimensions.x
+    base_y = entity.dimensions.y 
+    base_z = entity.dimensions.z
+    
+    target_width = entity.width
+    target_height = entity.length
+    target_depth = entity.depth
+    
+    eps = 0.001  # погрешность для сравнения float
+    
+    print(f"Базовые размеры (x,y,z): {base_x}, {base_y}, {base_z}")
+    print(f"Целевые размеры (w,h,d): {target_width}, {target_height}, {target_depth}")
+    
+    if (abs(base_x - target_width) < eps and 
+        abs(base_y - target_height) < eps and 
+        abs(base_z - target_depth) < eps):
+        print("Нормальная панель - не поворачиваем.")
+        # entity.rotate(0, 0, 0)
+        return
+        
+    if (abs(base_x - target_depth) < eps and 
+        abs(base_y - target_height) < eps and 
+        abs(base_z - target_width) < eps):
+        print("Боковая панель - поворачиваем на 90° вокруг Y")
+        # entity.rotate(0, RAD_90, 0)
+        return
+
+    if (abs(base_x - target_width) < eps and 
+        abs(base_y - target_depth) < eps and 
+        abs(base_z - target_height) < eps):
+        print("Лежачая панель - поворачиваем на 90° вокруг X")
+        # entity.rotate(RAD_90, 0, 0)
+        return
+
+    print("ВНИМАНИЕ: Не удалось определить правильный поворот!")
+    print("Требуется добавить новый случай в функцию")
+    print(f"Базовые размеры (x,y,z): {base_x}, {base_y}, {base_z}")
+    print(f"Целевые размеры (w,h,d): {target_width}, {target_height}, {target_depth}")
+
+
+
+
+
+
+
 
 psto_app = win32com.client.Dispatch("P100.Application")
 
@@ -104,89 +159,81 @@ print("Project attributes:")
         # # pprint (dir(selection))
 
 
-import math 
-def normalize_panel_rotation(entity):
-    base_x = entity.dimensions.x
-    base_y = entity.dimensions.y 
-    base_z = entity.dimensions.z
-    
-    target_width = entity.width
-    target_height = entity.length
-    target_depth = entity.depth
-    
-    # print(f"\nНормализация детали:")
-    
-    eps = 0.001  # погрешность для сравнения float
-    RAD_90 = math.pi / 2
-    
-    print(f"Базовые размеры (x,y,z): {base_x}, {base_y}, {base_z}")
-    print(f"Целевые размеры (w,h,d): {target_width}, {target_height}, {target_depth}")
-    
-    if (abs(base_x - target_width) < eps and 
-        abs(base_y - target_height) < eps and 
-        abs(base_z - target_depth) < eps):
-        print("Нормальная панель - не поворачиваем.")
-        # entity.rotate(0, 0, 0)
-        return
-        
-    if (abs(base_x - target_depth) < eps and 
-        abs(base_y - target_height) < eps and 
-        abs(base_z - target_width) < eps):
-        print("Боковая панель - поворачиваем на 90° вокруг Y")
-        entity.rotate(0, RAD_90, 0)
-        return
 
-    if (abs(base_x - target_width) < eps and 
-        abs(base_y - target_depth) < eps and 
-        abs(base_z - target_height) < eps):
-        print("Лежачая панель - поворачиваем на 90° вокруг X")
-        entity.rotate(RAD_90, 0, 0)
-        return
-
-    # Случай 4: x->height, y->depth, z->width
-    if (abs(base_x - target_height) < eps and
-        abs(base_y - target_depth) < eps and
-        abs(base_z - target_width) < eps):
-        print("Хз что это1 - поворачиваем на 90° вокруг Z")
-        entity.rotate(0, 0, RAD_90)
-        return
-
-    # Случай 5: x->height, y->width, z->depth
-    if (abs(base_x - target_height) < eps and
-        abs(base_y - target_width) < eps and
-        abs(base_z - target_depth) < eps):
-        print("Хз что это2 - поворачиваем на 90° вокруг Y")
-        entity.rotate(0, RAD_90, 0)
-        return
+# # Применяем ко всем панелям
+# for entity in project.Entities:
+#     if hasattr(entity, 'dimensions'):
+#         normalize_panel_rotation(entity)
 
 
-    print("ВНИМАНИЕ: Не удалось определить правильный поворот!")
-    print("Требуется добавить новый случай в функцию")
-    print(f"Базовые размеры (x,y,z): {base_x}, {base_y}, {base_z}")
-    print(f"Целевые размеры (w,h,d): {target_width}, {target_height}, {target_depth}")
 
-# Применяем ко всем панелям
-for entity in project.Entities:
-    if hasattr(entity, 'dimensions'):
-        normalize_panel_rotation(entity)
 
 
 
 for i, entity in enumerate(project.Entities):
-    if hasattr(entity, 'dimensions'):  # проверяем что это панель
-        # analyze_panel(entity)
-        print("selection attributes:")
-        print( entity.rotation.x)
-        print( entity.rotation.y)
-        print( entity.rotation.z)
-        print("selection attributes:")
-        print( entity.dimensions.x)
-        print( entity.dimensions.y)
-        print( entity.dimensions.z)
-        print("selection attributes:")
-        print( entity.width)
-        print( entity.length)
-        print( entity.depth)
+    # pprint (dir(entity.GetTypeInfo))
+    # entity.unrotate(RAD_90/5,RAD_90/5,RAD_90/5)
+
+    print(f"\n{'='*50}")
+    print(f"Panel #{i + 1} - {entity.name}")
+    print(f"{'='*50}")
+
+
+    # # Все базовые свойства
+    # base_properties = [
+    #     'name', 'entityClass', 'material', 'comment', 'fileName',
+    #     'locked', 'reportAsPart', 'reportAsUsed', 'reportAsCuted',
+    #     'reportUnits', 'priceName', 'priceID'
+    # ]
+    
+    # print("\n--- Basic Properties ---")
+    # for prop in base_properties:
+    #     try:
+    #         value = getattr(entity, prop)
+    #         print(f"{prop}: {value}")
+    #     except Exception as e:
+    #         print(f"{prop}: [Error: {str(e)}]")
+    
+    
+
+    # Размерные характеристики
+    print("\nReal dimensions (dimensions object):")
+    print(f"  X: {entity.dimensions.x}")
+    print(f"  Y: {entity.dimensions.y}")
+    print(f"  Z: {entity.dimensions.z}")
+
+    print("\nProjected dimensions:")
+    print(f"  Width: {entity.width}")
+    print(f"  Length: {entity.length}")
+    print(f"  Depth: {entity.depth}")
+
+
+    print("\nRotation:")
+    print(f"  X: {entity.rotation.x}")
+    print(f"  Y: {entity.rotation.y}")
+    print(f"  Z: {entity.rotation.z}")
+
+    # print("\nCenter:")
+    # print(f"  X: {entity.center.x}")
+    # print(f"  Y: {entity.center.y}")
+    # print(f"  Z: {entity.center.z}")
+
+    
+    og = entity.rotation
+    # entity.unrotate(og.x, og.y, og.z)
+
+    
+    # normalize_panel_rotation(entity)
+
+    # entity.rotate(og.x, og.y-RAD_90, og.z)
+    entity.rotate(-0.1919862177193704, -0.1919862177193704-RAD_90, -0.7679448708775338)
+    
+
+    # if hasattr(entity, 'dimensions'):  # проверяем что это панель
+    #     # analyze_panel(entity)
+
+
+
     # if entity.entityClass == 'IGroupEntity':
 
         #         print("IGroupEntity attributes:")
