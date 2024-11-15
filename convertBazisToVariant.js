@@ -2105,15 +2105,16 @@ function createMeshComponent(obj, index, parentRotation = null) {
     component.path = "Детали";
     component.guid = newGuid();
     
-    // Something to do with materials ... it's a mess
-    let matIndex = colors.findIndex(el => el == obj.Material.MaterialName);
+    // Something to do with materials ...
+    let materialName = obj.Material ? obj.Material.MaterialName : "default_material";
+    let matIndex = colors.findIndex(el => el == materialName);
     if ( matIndex == -1) {
-        colors.push(obj.Material.MaterialName);
+        colors.push(materialName);
         details.push([component.path+'/'+component.name]);
     } else {
         details[matIndex].push(component.path+'/'+component.name);
     };
-    let materialGUID = getMaterialGuid(obj.Material.MaterialName, component);
+    let materialGUID = getMaterialGuid(materialName, component);
 
     component.material = "s123mat://" + materialGUID
 
