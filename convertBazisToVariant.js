@@ -1,6 +1,8 @@
 ﻿Action.LoadModel('results/model.b3d');
 system.sleep(500);
 
+let fs = require('fs');
+
 const sys_mats = {
     "Гикори натуральный H3730 ST10": "99575bb0-4238-418a-8fc2-2e47d1957fe8",
     "Дуб Аризона коричневый H1151 ST10": "c8af3ddb-cf29-41a1-92df-02a5a8f62706",
@@ -2009,6 +2011,126 @@ function createComponent(obj, index, parentRotation = null) {
     return component
 }
 
+function getOrCreateMesh(item, index) {
+    let vertices = [];
+    let faces = [];
+    let totalVertices = 0;
+    
+    function exportObject(obj) {
+        if (obj.TriListsCount) {
+    
+            for(let i = 0; i < obj.TriListsCount; i++) {
+                let triPack = obj.TriLists[i];
+    
+                for(let j = 0; j < triPack.Count; j++) {
+                    let tri = triPack.Triangles[j];
+                    
+                    // Преобразуем вершины в глобальные координаты
+                    let v1 = obj.ToGlobal(tri.Vertex1);
+                    let v2 = obj.ToGlobal(tri.Vertex2);
+                    let v3 = obj.ToGlobal(tri.Vertex3);
+                    
+                    vertices.push(`v ${v1.x} ${v1.y} ${v1.z}`);
+                    vertices.push(`v ${v2.x} ${v2.y} ${v2.z}`);
+                    vertices.push(`v ${v3.x} ${v3.y} ${v3.z}`);
+                    
+                    let baseIndex = totalVertices + 1;
+                    faces.push(`f ${baseIndex} ${baseIndex+1} ${baseIndex+2}`);
+                    totalVertices += 3;
+                }
+            }
+        }
+        
+        if (obj.List) {
+            for(let i = 0; i < obj.Count; i++) {
+                exportObject(obj.Objects[i]);
+                system.sleep(10);
+            }
+        }
+    }
+    
+    
+    exportObject(item);
+    // system.writeTextFile("C:/Users/evgeniy/Desktop/test1285.obj", [...vertices, ...faces].join('\n'));
+    // system.writeTextFile("C:/Users/evgeniy/Desktop/test1285.obj", [...vertices, ...faces].join('\n'));
+    
+    const meshName = `model_${index}`
+    
+    fs.writeFileSync(`results/${meshName}.obj`, [...vertices, ...faces].join('\n'));
+    
+    
+    return meshName;
+    
+}
+
+function createMeshComponent(obj, index, parentRotation = null) {
+    
+    const meshName = getOrCreateMesh(item, index)
+
+
+
+    let component = {};
+
+    component.position = getNewComponentPosition(obj)
+
+    let localRotation = {
+        x: obj.Rotation.ImagPart.x,
+        y: -obj.Rotation.ImagPart.y,
+        z: -obj.Rotation.ImagPart.z,
+        w: obj.Rotation.RealPart
+    };
+    component.rotation = parentRotation 
+        ? multiplyQuaternions(parentRotation, localRotation) 
+        : localRotation;
+
+    component.eulers = quaternionToEuler(component.rotation)
+    
+    component.size = {
+        "x": obj.GSize.x,
+        "y": obj.GSize.y,
+        "z": obj.GSize.z
+    };
+
+    component.color = null;
+    component.ignore_bounds = true;
+    component.bake = null;
+    component.processings = [];
+    component.is_active = true;
+    component.max_texture_size = 512;
+    component.build_order = index;
+    component.order = index;
+    component.user_data = null;
+    component.positioning_points = [];
+    component.name = obj.Name + index;
+    component.path = "Детали";
+    component.guid = newGuid();
+    
+    // Something to do with materials ... it's a mess
+    let matIndex = colors.findIndex(el => el == obj.Material.MaterialName);
+    if ( matIndex == -1) {
+        colors.push(obj.Material.MaterialName);
+        details.push([component.path+'/'+component.name]);
+    } else {
+        details[matIndex].push(component.path+'/'+component.name);
+    };
+    let materialGUID = getMaterialGuid(obj.Material.MaterialName, component);
+
+    component.material = "s123mat://" + materialGUID
+
+    component.modifier = {
+        "mesh": `file://${meshName}.obj`,
+        "node_name": null,
+        "use_scale": true,
+        "apply_offset": false,
+
+        "type": 3
+    };
+
+    component.full_path = component.path+'/'+component.name
+
+    return component
+}
+
 
 
 let usedInputNames = {}
@@ -2051,51 +2173,8 @@ function processLevel(
 
     let currentRotation = parentRotation;
 
-    if (item.toString() == '[object TFurnPanel]') {
-        let component = createComponent(item, totalProcessed, parentRotation);
-        components.push(component);
-        currentRotation = component.rotation;
-
-        if (currentAnimType) { // if they are a part of the animation
-
-            if (currentAnimType >= 2 && currentAnimType <= 5) { // Rotate
-
-                const getInputNode = createNodeGetInput(inputName, nodesCount)
-                nodes.push(getInputNode)
-                nodesCount++
-    
-                const createSummNode = createNodeSumm(getInputNode.guid, nodesCount, axisStart, axisEnd, component)
-                nodes.push(createSummNode)
-                nodesCount++
-    
-                const createRotationNode = createNodeSetRotation(component.full_path, createSummNode.guid, nodesCount)
-                nodes.push(createRotationNode)
-                nodesCount++
-    
-                const setComponentFieldsNode = createNodeSetDetailInfo(component.name, component.full_path, createSummNode.guid, nodesCount)
-                nodes.push(setComponentFieldsNode)
-                nodesCount++
-                
-
-            } else if (currentAnimType >= 6 && currentAnimType <= 8) { // Translate
-
-                const getInputNode = createNodeGetInput(inputName, nodesCount)
-                nodes.push(getInputNode)
-                nodesCount++
-                // console.log(axisStart, axisEnd)
-    
-                const createSummNode = createNodeSummForTransition(getInputNode.guid, nodesCount, axisStart, axisEnd, component)
-                nodes.push(createSummNode)
-                nodesCount++
-    
-                const setComponentFieldsNode = createNodeSetDetailInfo(component.name, component.full_path, createSummNode.guid, nodesCount)
-                nodes.push(setComponentFieldsNode)
-                nodesCount++
-            }
-
-        }
-
-    } else if (item.toString() === '[object TFurnBlock]') {
+    // BLOCK
+    if (item.toString() === '[object TFurnBlock]') {
         let localRotation = {
             x: item.Rotation.ImagPart.x,
             y: -item.Rotation.ImagPart.y,
@@ -2150,6 +2229,77 @@ function processLevel(
             }
         }
     }
+
+    // EVERYTHING ELSE
+    // } else if (
+    //     item.toString() == '[object TFurnPanel]' || 
+    //     item.toString() == '[object TFastener]' || 
+    //     item.toString() == '[object TFurnAsm]' ||
+    //     item.toString() == '[object TAsmKit]' ||
+    //     item.toString() == '[object TImportedMesh]' ||
+    //     item.toString() == '[object TObsoleteBentPanel]' ||
+    //     item.toString() == '[object TRotationBody]' ||
+    //     item.toString() == '[object TExtrusionBody]'
+    // ) {
+    else if (
+        item.toString() != '[object TModel3D]' &&
+        item.toString() != '[object TModelLimits]'
+    ) {
+        let component
+
+        if (item.toString() == '[object TFurnPanel]') {
+            component = createComponent(item, totalProcessed, parentRotation);
+
+        } else {
+            component = createMeshComponent(item, totalProcessed, parentRotation);
+
+        }
+
+
+        components.push(component);
+        currentRotation = component.rotation;
+
+        if (currentAnimType) { // if they are a part of the animation
+
+            if (currentAnimType >= 2 && currentAnimType <= 5) { // Rotate
+
+                const getInputNode = createNodeGetInput(inputName, nodesCount)
+                nodes.push(getInputNode)
+                nodesCount++
+    
+                const createSummNode = createNodeSumm(getInputNode.guid, nodesCount, axisStart, axisEnd, component)
+                nodes.push(createSummNode)
+                nodesCount++
+    
+                const createRotationNode = createNodeSetRotation(component.full_path, createSummNode.guid, nodesCount)
+                nodes.push(createRotationNode)
+                nodesCount++
+    
+                const setComponentFieldsNode = createNodeSetDetailInfo(component.name, component.full_path, createSummNode.guid, nodesCount)
+                nodes.push(setComponentFieldsNode)
+                nodesCount++
+                
+
+            } else if (currentAnimType >= 6 && currentAnimType <= 8) { // Translate
+
+                const getInputNode = createNodeGetInput(inputName, nodesCount)
+                nodes.push(getInputNode)
+                nodesCount++
+                // console.log(axisStart, axisEnd)
+    
+                const createSummNode = createNodeSummForTransition(getInputNode.guid, nodesCount, axisStart, axisEnd, component)
+                nodes.push(createSummNode)
+                nodesCount++
+    
+                const setComponentFieldsNode = createNodeSetDetailInfo(component.name, component.full_path, createSummNode.guid, nodesCount)
+                nodes.push(setComponentFieldsNode)
+                nodesCount++
+            }
+
+        }
+    }
+
+
 
     if (item.toString() === '[object TFurnBlock]' && item.Count) {
         for (let i = 0; i < item.Count; i++) {
@@ -2371,5 +2521,5 @@ for (let i = 0; i < 32; i++) {
 }
 
 
-let fs = require('fs');
+// let fs = require('fs');
 fs.writeFileSync('results/project.s123proj', JSON.stringify(project, null, 2));

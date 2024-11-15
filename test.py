@@ -164,11 +164,11 @@ def normalize_panel_rotation(entity):
 
 psto_app = win32com.client.Dispatch("P100.Application")
 
-project = psto_app.project
+project = psto_app.Project
 ungroup_all(project)
 
 print("Application methods:")
-pprint(dir(psto_app.userinterface2))
+# pprint(dir(psto_app))
 
 print("Project attributes:")
 # pprint (dir(project))
@@ -187,32 +187,35 @@ print("Project attributes:")
 
 
 
-rotations = {}
 
 
 for i, entity in enumerate(project.Entities):
     # pprint (dir(entity.GetTypeInfo))
     # entity.unrotate(RAD_90/5,RAD_90/5,RAD_90/5)
 
+
     print(f"\n{'='*50}")
     print(f"Panel #{i + 1} - {entity.name}")
     print(f"{'='*50}")
 
-
-    # # Все базовые свойства
-    # base_properties = [
-    #     'name', 'entityClass', 'material', 'comment', 'fileName',
-    #     'locked', 'reportAsPart', 'reportAsUsed', 'reportAsCuted',
-    #     'reportUnits', 'priceName', 'priceID'
-    # ]
     
-    # print("\n--- Basic Properties ---")
-    # for prop in base_properties:
-    #     try:
-    #         value = getattr(entity, prop)
-    #         print(f"{prop}: {value}")
-    #     except Exception as e:
-    #         print(f"{prop}: [Error: {str(e)}]")
+    material_name = entity.material.textureName
+    print(material_name)
+
+    # # # Все базовые свойства
+    # # base_properties = [
+    # #     'name', 'entityClass', 'material', 'comment', 'fileName',
+    # #     'locked', 'reportAsPart', 'reportAsUsed', 'reportAsCuted',
+    # #     'reportUnits', 'priceName', 'priceID'
+    # # ]
+    
+    # # print("\n--- Basic Properties ---")
+    # # for prop in base_properties:
+    # #     try:
+    # #         value = getattr(entity, prop)
+    # #         print(f"{prop}: {value}")
+    # #     except Exception as e:
+    # #         print(f"{prop}: [Error: {str(e)}]")
     
     
 
@@ -238,42 +241,19 @@ for i, entity in enumerate(project.Entities):
     # # print(f"  Y: {entity.center.y}")
     # # print(f"  Z: {entity.center.z}")
 
-    
-    og = entity.rotation
-    entity.unrotate(og.x, og.y, og.z)
+
+
+
 
     
-    rotations[i] = {
-        'x': og.x,
-        'y': og.y,
-        'z': og.z
-    }
+    # og = entity.rotation
+    # entity.unrotate(og.x, og.y, og.z)
+
+    
     # normalize_panel_rotation(entity)
 
-    time.sleep(1)
-    
-    ui = psto_app.UserInterface
-    ui.refreshViews()
-    entity.rotate(og.x, og.y, og.z)
-    time.sleep(1)
-
-    # psto_app.fileSave()
-
-
-
-# # psto_app = win32com.client.Dispatch("P100.Application")
-
-# # project = psto_app.Project
-# psto_app.fileSave()
-# time.sleep(1)
-# psto_app.userInterface.refreshViews()
-
-# for i, entity in enumerate(project.Entities):
-#     rot = rotations[i]
-#     print(rot)
-#     entity.rotate(rot['x'], rot['y'], rot['z'])
-#     # time.sleep(1)
-#     # entity.rotate(-0.1919862177193704, -0.1919862177193704-RAD_90, -0.7679448708775338)
+    # entity.rotate(og.x, og.y-RAD_90, og.z)
+    # entity.rotate(-0.1919862177193704, -0.1919862177193704-RAD_90, -0.7679448708775338)
     
 
     # if hasattr(entity, 'dimensions'):  # проверяем что это панель
