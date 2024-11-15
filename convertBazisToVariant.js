@@ -2011,7 +2011,37 @@ function createComponent(obj, index, parentRotation = null) {
     return component
 }
 
+let meshCache = new Map();
+
+function getMeshCacheKey(obj) {
+    let count = 0;
+    
+    function countRecursive(item) {
+        if (item.TriListsCount) {
+            for(let i = 0; i < item.TriListsCount; i++) {
+                count += item.TriLists[i].Count * 3;
+            }
+        }
+        
+        if (item.List) {
+            for(let i = 0; i < item.Count; i++) {
+                countRecursive(item.Objects[i]);
+            }
+        }
+    }
+    
+    countRecursive(obj);
+
+    return `${obj.Name}_${count}`;
+}
+
 function getOrCreateMesh(item, index) {
+    const cacheKey = getMeshCacheKey(item);
+    
+    if (meshCache.has(cacheKey)) {
+        return meshCache.get(cacheKey);
+    }
+
     let vertices = [];
     let faces = [];
     let totalVertices = 0;
@@ -2044,20 +2074,19 @@ function getOrCreateMesh(item, index) {
         if (obj.List) {
             for(let i = 0; i < obj.Count; i++) {
                 exportObject(obj.Objects[i]);
-                system.sleep(10);
+                system.sleep(1);
             }
         }
     }
     
     
     exportObject(item);
-    // system.writeTextFile("C:/Users/evgeniy/Desktop/test1285.obj", [...vertices, ...faces].join('\n'));
-    // system.writeTextFile("C:/Users/evgeniy/Desktop/test1285.obj", [...vertices, ...faces].join('\n'));
     
     const meshName = `model_${index}`
     
     fs.writeFileSync(`results/${meshName}.obj`, [...vertices, ...faces].join('\n'));
     
+    meshCache.set(cacheKey, meshName);
     
     return meshName;
     
