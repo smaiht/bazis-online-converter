@@ -264,25 +264,58 @@ def main(pro100_process):
 
         # Process entities and collect materials
         for i, entity in enumerate(project.Entities):
-            original_rotation = Rot3D(
+            # original_rotation = Rot3D(
+            #     entity.rotation.x,
+            #     entity.rotation.y,
+            #     entity.rotation.z
+            # )
+            
+            # entity.unrotate(
+            #     original_rotation.x,
+            #     original_rotation.y, 
+            #     original_rotation.z
+            # )
+
+            # base_rotation = normalize_panel_rotation(entity)
+
+            # new_rotation = Rot3D(
+            #     original_rotation.x + base_rotation.x,
+            #     original_rotation.y + base_rotation.y,
+            #     original_rotation.z + base_rotation.z
+            # )
+
+
+
+            original_euler = [
                 entity.rotation.x,
                 entity.rotation.y,
                 entity.rotation.z
-            )
-            
+            ]
+            original_rotation = Rotation.from_euler('yxz', [
+                -original_euler[1],  # -pitch
+                original_euler[0],   # roll
+                -original_euler[2]   # -yaw
+            ], degrees=False)  # радианы
+
             entity.unrotate(
-                original_rotation.x,
-                original_rotation.y, 
-                original_rotation.z
+                original_euler[0],
+                original_euler[1],
+                original_euler[2]
             )
 
+            # Получаем дополнительный поворот
             base_rotation = normalize_panel_rotation(entity)
+            additional_rotation = Rotation.from_euler('yxz', [
+                -base_rotation.y,  # -pitch
+                base_rotation.x,   # roll
+                -base_rotation.z   # -yaw
+            ], degrees=False)  # радианы
 
-            new_rotation = Rot3D(
-                original_rotation.x + base_rotation.x,
-                original_rotation.y + base_rotation.y,
-                original_rotation.z + base_rotation.z
-            )
+
+            final_rotation = original_rotation * additional_rotation
+            
+            # Получаем кватернион для компонента
+            quaternion = final_rotation.as_quat()
 
 
 
@@ -290,14 +323,13 @@ def main(pro100_process):
             # print(material_name)
             
 
-
             # Create component
-            roll = new_rotation.x * 180/np.pi
-            pitch = new_rotation.y * 180/np.pi
-            yaw = new_rotation.z * 180/np.pi
+            # roll = new_rotation.x * 180/np.pi
+            # pitch = new_rotation.y * 180/np.pi
+            # yaw = new_rotation.z * 180/np.pi
 
-            r = Rotation.from_euler('yxz', [-pitch, roll, -yaw], degrees=True)
-            quaternion = r.as_quat()
+            # r = Rotation.from_euler('yxz', [-pitch, roll, -yaw], degrees=True)
+            # quaternion = r.as_quat()
 
             component = {
                 'position': {

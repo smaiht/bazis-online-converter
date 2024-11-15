@@ -164,11 +164,11 @@ def normalize_panel_rotation(entity):
 
 psto_app = win32com.client.Dispatch("P100.Application")
 
-project = psto_app.Project
+project = psto_app.project
 ungroup_all(project)
 
 print("Application methods:")
-# pprint(dir(psto_app))
+pprint(dir(psto_app.userinterface2))
 
 print("Project attributes:")
 # pprint (dir(project))
@@ -187,6 +187,7 @@ print("Project attributes:")
 
 
 
+rotations = {}
 
 
 for i, entity in enumerate(project.Entities):
@@ -215,37 +216,64 @@ for i, entity in enumerate(project.Entities):
     
     
 
-    # Размерные характеристики
-    print("\nReal dimensions (dimensions object):")
-    print(f"  X: {entity.dimensions.x}")
-    print(f"  Y: {entity.dimensions.y}")
-    print(f"  Z: {entity.dimensions.z}")
+    # # Размерные характеристики
+    # print("\nReal dimensions (dimensions object):")
+    # print(f"  X: {entity.dimensions.x}")
+    # print(f"  Y: {entity.dimensions.y}")
+    # print(f"  Z: {entity.dimensions.z}")
 
-    print("\nProjected dimensions:")
-    print(f"  Width: {entity.width}")
-    print(f"  Length: {entity.length}")
-    print(f"  Depth: {entity.depth}")
+    # print("\nProjected dimensions:")
+    # print(f"  Width: {entity.width}")
+    # print(f"  Length: {entity.length}")
+    # print(f"  Depth: {entity.depth}")
 
 
-    print("\nRotation:")
-    print(f"  X: {entity.rotation.x}")
-    print(f"  Y: {entity.rotation.y}")
-    print(f"  Z: {entity.rotation.z}")
+    # print("\nRotation:")
+    # print(f"  X: {entity.rotation.x}")
+    # print(f"  Y: {entity.rotation.y}")
+    # print(f"  Z: {entity.rotation.z}")
 
-    # print("\nCenter:")
-    # print(f"  X: {entity.center.x}")
-    # print(f"  Y: {entity.center.y}")
-    # print(f"  Z: {entity.center.z}")
+    # # print("\nCenter:")
+    # # print(f"  X: {entity.center.x}")
+    # # print(f"  Y: {entity.center.y}")
+    # # print(f"  Z: {entity.center.z}")
 
     
     og = entity.rotation
-    # entity.unrotate(og.x, og.y, og.z)
+    entity.unrotate(og.x, og.y, og.z)
 
     
+    rotations[i] = {
+        'x': og.x,
+        'y': og.y,
+        'z': og.z
+    }
     # normalize_panel_rotation(entity)
 
-    # entity.rotate(og.x, og.y-RAD_90, og.z)
-    entity.rotate(-0.1919862177193704, -0.1919862177193704-RAD_90, -0.7679448708775338)
+    time.sleep(1)
+    
+    ui = psto_app.UserInterface
+    ui.refreshViews()
+    entity.rotate(og.x, og.y, og.z)
+    time.sleep(1)
+
+    # psto_app.fileSave()
+
+
+
+# # psto_app = win32com.client.Dispatch("P100.Application")
+
+# # project = psto_app.Project
+# psto_app.fileSave()
+# time.sleep(1)
+# psto_app.userInterface.refreshViews()
+
+# for i, entity in enumerate(project.Entities):
+#     rot = rotations[i]
+#     print(rot)
+#     entity.rotate(rot['x'], rot['y'], rot['z'])
+#     # time.sleep(1)
+#     # entity.rotate(-0.1919862177193704, -0.1919862177193704-RAD_90, -0.7679448708775338)
     
 
     # if hasattr(entity, 'dimensions'):  # проверяем что это панель
