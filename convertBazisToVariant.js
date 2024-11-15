@@ -2060,9 +2060,9 @@ function getOrCreateMesh(item, index) {
                     let v2 = obj.ToGlobal(tri.Vertex2);
                     let v3 = obj.ToGlobal(tri.Vertex3);
                     
-                    vertices.push(`v ${v1.x} ${v1.y} ${v1.z}`);
-                    vertices.push(`v ${v2.x} ${v2.y} ${v2.z}`);
-                    vertices.push(`v ${v3.x} ${v3.y} ${v3.z}`);
+                    vertices.push(`v ${v1.x/1000} ${v1.y/1000} ${v1.z/1000}`);
+                    vertices.push(`v ${v2.x/1000} ${v2.y/1000} ${v2.z/1000}`);
+                    vertices.push(`v ${v3.x/1000} ${v3.y/1000} ${v3.z/1000}`);
                     
                     let baseIndex = totalVertices + 1;
                     faces.push(`f ${baseIndex} ${baseIndex+1} ${baseIndex+2}`);
@@ -2156,13 +2156,13 @@ function createMeshComponent(obj, index, parentRotation = null) {
     component.modifier = {
         "mesh": `file://${meshName}.obj`,
         "node_name": null,
-        "use_scale": true,
+        "use_scale": false,
         "apply_offset": false,
-        "mesh_size": {
-            "x": obj.GSize.x,
-            "y": obj.GSize.y,
-            "z": obj.GSize.z
-        },
+        // "mesh_size": {
+        //     "x": obj.GSize.x,
+        //     "y": obj.GSize.y,
+        //     "z": obj.GSize.z
+        // },
         "type": 3
     };
 
@@ -2551,7 +2551,7 @@ Action.Control.SavePicture('results/main_icon.jpg')
 
 // Generate 32 images
 let initialAngleY = 20;
-let angleStep = 360 / 30;
+let angleStep = 360 / 10;
 for (let i = 0; i < 10; i++) {
     let newAngleY = initialAngleY + (i * angleStep);
     SetCamera(p3dLeft) // always set this shit first, so we could make multiple screenshot from diff angles. Otherwise the script freeezes and all screenshots are the same
