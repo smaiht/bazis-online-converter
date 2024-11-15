@@ -2065,7 +2065,7 @@ function getOrCreateMesh(item, index) {
 
 function createMeshComponent(obj, index, parentRotation = null) {
     
-    const meshName = getOrCreateMesh(item, index)
+    const meshName = getOrCreateMesh(obj, index)
 
 
 
