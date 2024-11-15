@@ -131,6 +131,25 @@ def normalize_panel_rotation(entity):
         # entity.rotate(RAD_90, 0, 0)
         return
 
+    # # Случай 4: (x,y,z) = (l,w,d) - новый случай
+    # if (abs(base_x - target_length) < eps and 
+    #     abs(base_y - target_width) < eps and 
+    #     abs(base_z - target_depth) < eps):
+    #     return Rot3D(0, 0, RAD_90)
+
+    # # Случай 5: (x,y,z) = (l,d,w) - новый случай
+    # if (abs(base_x - target_length) < eps and 
+    #     abs(base_y - target_depth) < eps and 
+    #     abs(base_z - target_width) < eps):
+    #     return Rot3D(0, -RAD_90, RAD_90)
+
+    # # Случай 6: (x,y,z) = (d,w,l) - новый случай
+    # if (abs(base_x - target_depth) < eps and 
+    #     abs(base_y - target_width) < eps and 
+    #     abs(base_z - target_length) < eps):
+    #     return Rot3D(RAD_90, RAD_90, 0)
+
+
     print("ВНИМАНИЕ: Не удалось определить правильный поворот!")
     print("Требуется добавить новый случай в функцию")
     print(f"Базовые размеры (x,y,z): {base_x}, {base_y}, {base_z}")
