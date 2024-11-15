@@ -208,23 +208,23 @@ def normalize_panel_rotation(entity):
             0
         )
     
-    # Случай 4: (x,y,z) = (l,w,d) - новый случай
+    # Случай 4: (x,y,z) = (l,w,d) - Нормальная панель, но повернута вокруг своей оси на 90
     if (abs(base_x - target_height) < eps and 
         abs(base_y - target_width) < eps and 
         abs(base_z - target_depth) < eps):
         return Rot3D(0, 0, RAD_90)
 
-    # Случай 5: (x,y,z) = (l,d,w) - новый случай
+    # Случай 5: (x,y,z) = (l,d,w) - Боковая панель, но повернута вокруг своей оси на 90
     if (abs(base_x - target_height) < eps and 
         abs(base_y - target_depth) < eps and 
         abs(base_z - target_width) < eps):
-        return Rot3D(0, -RAD_90, RAD_90)
+        return Rot3D(RAD_90, RAD_90, 0)
 
-    # Случай 6: (x,y,z) = (d,w,l) - новый случай
+    # Случай 6: (x,y,z) = (d,w,l) - Лежачая панель, но повернута вокруг своей оси на 90
     if (abs(base_x - target_depth) < eps and 
         abs(base_y - target_width) < eps and 
         abs(base_z - target_height) < eps):
-        return Rot3D(RAD_90, RAD_90, 0)
+        return Rot3D(RAD_90, 0, RAD_90)
     
 
     print("ВНИМАНИЕ: Не удалось определить правильный поворот!")
