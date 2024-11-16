@@ -31,6 +31,8 @@ SUPERUSERS_FILE = "superusers.txt"
 
 ENDPOINT = os.getenv('ENDPOINT')
 
+ASSIMP_PATH = os.getenv('ASSIMP_PATH')
+
 # SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPT_DIR = "results"
 CONVERTER_FROM_BAZIS_SCRIPT = "./convertBazisToVariant.js"
@@ -246,6 +248,39 @@ def find_bazis_window(pid):
         pass
 
     return license_window[0], pirate_window[0], error_window[0], main_window[0], confirmation_window[0]
+
+
+
+def convert_all_obj_to_fbx(IdProject):
+    success_count = 0
+    error_count = 0
+    
+    obj_files = [f for f in os.listdir(SCRIPT_DIR) if f.endswith('.obj')]
+    total_files = len(obj_files)
+    
+    if total_files == 0:
+        print("No OBJ files found in", SCRIPT_DIR)
+        return
+        
+    log_message(f"Found {total_files} OBJ files to convert", IdProject=IdProject)
+    
+    for filename in obj_files:
+        obj_path = os.path.join(SCRIPT_DIR, filename)
+        fbx_path = obj_path.replace('.obj', '.fbx')
+        
+        try:
+            print(f"\nConverting: {filename}")
+            subprocess.run([ASSIMP_PATH, 'export', obj_path, fbx_path], check=True)
+            
+            os.remove(obj_path)
+            success_count += 1
+            print(f"Success: {filename} -> {os.path.basename(fbx_path)}")
+            
+        except Exception as e:
+            error_count += 1
+            print(f"Error converting {filename}: {str(e)}")
+
+    log_message(f".OBJ models conveted to .FBX successfully: {success_count}/ {total_files}", IdProject=IdProject)
 
 
 
@@ -485,6 +520,8 @@ def main():
 
                     insert_material_folders()
                     log_message("Material Folders IDs inserted successfully", IdProject=folder_name)
+
+                    convert_all_obj_to_fbx(folder_name)
 
                     log_message("Trying send to .NET ...")
                     # Send to dotnet
