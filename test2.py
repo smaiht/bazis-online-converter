@@ -9,7 +9,13 @@ def convert_obj_to_fbx(obj_path):
     fbx_path = obj_path.replace('.obj', '.fbx')
     print(f"Converting {obj_path} to {fbx_path}")
     try:
-        run([ASSIMP_PATH, 'export', obj_path, fbx_path], check=True)
+        # run([ASSIMP_PATH, 'export', obj_path, fbx_path, '--help'], check=True)
+        run([
+            ASSIMP_PATH, 
+            'export',
+            obj_path, 
+            fbx_path,
+        ], check=True)
         print(f"Success: {os.path.basename(obj_path)}")
     except Exception as e:
         print(f"Error converting {obj_path}: {str(e)}")

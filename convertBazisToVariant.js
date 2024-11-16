@@ -2060,9 +2060,9 @@ function getOrCreateMesh(item, index) {
                     let v2 = obj.ToGlobal(tri.Vertex2);
                     let v3 = obj.ToGlobal(tri.Vertex3);
                     
-                    vertices.push(`v ${v1.x/2000} ${v1.y/2000} ${v1.z/2000}`);
-                    vertices.push(`v ${v2.x/2000} ${v2.y/2000} ${v2.z/2000}`);
-                    vertices.push(`v ${v3.x/2000} ${v3.y/2000} ${v3.z/2000}`);
+                    vertices.push(`v ${v1.x/1000} ${v1.y/1000} ${v1.z/1000}`);
+                    vertices.push(`v ${v2.x/1000} ${v2.y/1000} ${v2.z/1000}`);
+                    vertices.push(`v ${v3.x/1000} ${v3.y/1000} ${v3.z/1000}`);
                     
                     let baseIndex = totalVertices + 1;
                     faces.push(`f ${baseIndex} ${baseIndex+1} ${baseIndex+2}`);
