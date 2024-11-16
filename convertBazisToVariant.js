@@ -2102,23 +2102,23 @@ function createMeshComponent(obj, index, parentRotation = null) {
 
     component.position = getNewComponentPosition(obj)
 
-    let localRotation = {
-        x: obj.Rotation.ImagPart.x,
-        y: -obj.Rotation.ImagPart.y,
-        z: -obj.Rotation.ImagPart.z,
-        w: obj.Rotation.RealPart
-    };
-    component.rotation = parentRotation 
-        ? multiplyQuaternions(parentRotation, localRotation) 
-        : localRotation;
+    // let localRotation = {
+    //     x: obj.Rotation.ImagPart.x,
+    //     y: -obj.Rotation.ImagPart.y,
+    //     z: -obj.Rotation.ImagPart.z,
+    //     w: obj.Rotation.RealPart
+    // };
+    // component.rotation = parentRotation 
+    //     ? multiplyQuaternions(parentRotation, localRotation) 
+    //     : localRotation;
 
-    component.eulers = quaternionToEuler(component.rotation)
-    // component.rotation = {
-    //     "x": 0.0,
-    //     "y": 0.0,
-    //     "z": 0.0,
-    //     "w": 1.0
-    // },
+    // component.eulers = quaternionToEuler(component.rotation)
+    component.rotation = {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+    },
     
     component.size = {
         "x": obj.GSize.x,
