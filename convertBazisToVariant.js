@@ -2084,7 +2084,7 @@ function getOrCreateMesh(item, index) {
     
     const meshName = `model_${index}`
     
-    fs.writeFileSync(`results/${meshName}.fbx`, [...vertices, ...faces].join('\n'));
+    fs.writeFileSync(`results/${meshName}.obj`, [...vertices, ...faces].join('\n'));
     
     meshCache.set(cacheKey, meshName);
     
