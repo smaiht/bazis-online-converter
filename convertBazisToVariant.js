@@ -2113,12 +2113,12 @@ function createMeshComponent(obj, index, parentRotation = null) {
         : localRotation;
 
     component.eulers = quaternionToEuler(component.rotation)
-    component.rotation = {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 1.0
-    },
+    // component.rotation = {
+    //     "x": 0.0,
+    //     "y": 0.0,
+    //     "z": 0.0,
+    //     "w": 1.0
+    // },
     
     component.size = {
         "x": obj.GSize.x,
@@ -2156,13 +2156,13 @@ function createMeshComponent(obj, index, parentRotation = null) {
     component.modifier = {
         "mesh": `file://${meshName}.fbx`,
         "node_name": null,
-        "use_scale": false,
+        "use_scale": true,
         "apply_offset": false,
-        // "mesh_size": {
-        //     "x": obj.GSize.x/1000,
-        //     "y": obj.GSize.y/1000,
-        //     "z": obj.GSize.z/1000
-        // },
+        "mesh_size": {
+            "x": obj.GSize.x/1000,
+            "y": obj.GSize.y/1000,
+            "z": obj.GSize.z/1000
+        },
         "type": 3
     };
 
