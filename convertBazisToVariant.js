@@ -2102,17 +2102,17 @@ function createMeshComponent(obj, index, parentRotation = null) {
 
     component.position = getNewComponentPosition(obj)
 
-    // let localRotation = {
-    //     x: obj.Rotation.ImagPart.x,
-    //     y: -obj.Rotation.ImagPart.y,
-    //     z: -obj.Rotation.ImagPart.z,
-    //     w: obj.Rotation.RealPart
-    // };
-    // component.rotation = parentRotation 
-    //     ? multiplyQuaternions(parentRotation, localRotation) 
-    //     : localRotation;
+    let localRotation = {
+        x: obj.Rotation.ImagPart.x,
+        y: -obj.Rotation.ImagPart.y,
+        z: -obj.Rotation.ImagPart.z,
+        w: obj.Rotation.RealPart
+    };
+    component.rotation = parentRotation 
+        ? multiplyQuaternions(parentRotation, localRotation) 
+        : localRotation;
 
-    // component.eulers = quaternionToEuler(component.rotation)
+    component.eulers = quaternionToEuler(component.rotation)
     component.rotation = {
         "x": 0.0,
         "y": 0.0,
@@ -2159,9 +2159,9 @@ function createMeshComponent(obj, index, parentRotation = null) {
         "use_scale": false,
         "apply_offset": false,
         // "mesh_size": {
-        //     "x": obj.GSize.x,
-        //     "y": obj.GSize.y,
-        //     "z": obj.GSize.z
+        //     "x": obj.GSize.x/1000,
+        //     "y": obj.GSize.y/1000,
+        //     "z": obj.GSize.z/1000
         // },
         "type": 3
     };
