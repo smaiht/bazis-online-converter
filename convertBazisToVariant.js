@@ -2100,12 +2100,13 @@ function createMeshComponent(obj, index, parentRotation = null) {
 
     let component = {};
 
-    component.position = {
-        "x": 0,
-        "y": 0,
-        "z": 0
-    };
-    // component.position = getNewComponentPosition(obj)
+    // component.position = {
+    //     "x": 0,
+    //     "y": 0,
+    //     "z": 0
+    // };
+
+    component.position = getNewComponentPosition(obj)
 
     // let localRotation = {
     //     x: obj.Rotation.ImagPart.x,
