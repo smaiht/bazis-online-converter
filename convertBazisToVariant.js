@@ -2084,7 +2084,7 @@ function getOrCreateMesh(item, index) {
     
     const meshName = `model_${index}`
     
-    fs.writeFileSync(`results/${meshName}.obj`, [...vertices, ...faces].join('\n'));
+    fs.writeFileSync(`results/${meshName}.fbx`, [...vertices, ...faces].join('\n'));
     
     meshCache.set(cacheKey, meshName);
     
@@ -2154,7 +2154,7 @@ function createMeshComponent(obj, index, parentRotation = null) {
     component.material = "s123mat://" + materialGUID
 
     component.modifier = {
-        "mesh": `file://${meshName}.obj`,
+        "mesh": `file://${meshName}.fbx`,
         "node_name": null,
         "use_scale": false,
         "apply_offset": false,
