@@ -2532,6 +2532,50 @@ let setLDSPMaterialNode = {
     "order": 1
 };
 
+function createNodeSetPartMaterial(summGuid, order) {
+    return  {
+        "guid": newGuid(),
+        "name": "Задать параметр детали",
+        "color": "#788cff",
+        "position": {
+            "x": 2600,
+            "y": order*100
+        },
+        "method": {
+            "name": "SetComponentsFields",
+            "arguments": [
+                {
+                    "name": "components",
+                    "value": [
+                    ],
+                    "type": 18
+                },
+                {
+                    "name": "fields",
+                    "value": [
+                        {
+                            "type": 2,
+                            "order": 0,
+                            "key": "material",
+                            "value": {
+                                "node_guid": summGuid,
+                                "pair_key": null
+                            }
+                        }
+                    ],
+                    "type": 18
+                }
+            ],
+            "result": {
+                "name": null,
+                "value": null,
+                "type": 0
+            }
+        },
+        "order": order
+    }
+}
+
 let detailsListOfColor = {
     "type": 3,
     "key": "A",
@@ -2557,7 +2601,7 @@ colors.forEach(color => {
     ////////////////////////////Получить вход
     nodes.push(newNodeGetInput);
 
-    //Задать материал
+    //Задать материал LDSP
     let newNodeSetLDSPMaterial = JSON.parse(JSON.stringify(setLDSPMaterialNode));
     newNodeSetLDSPMaterial.guid = newGuid();
     newNodeSetLDSPMaterial.position.y += colors.indexOf(color)*200;
@@ -2571,8 +2615,20 @@ colors.forEach(color => {
     };
 
     newNodeSetLDSPMaterial.order = colors.indexOf(color)+1;
+    //Задать материал MODELS
+    let newNodeSetPartMaterial = createNodeSetPartMaterial(newNodeGetInput.guid, colors.indexOf(color));
+
+    for (let i = 0; i < details[colors.indexOf(color)].length; i++) {
+        let newDetailsListOfColor = JSON.parse(JSON.stringify(detailsListOfColor));
+        newDetailsListOfColor.key = String.fromCharCode(97 + i).toUpperCase();
+        newDetailsListOfColor.value =  details[colors.indexOf(color)][i];
+        newNodeSetPartMaterial.method.arguments[0].value.push(newDetailsListOfColor);
+    };
+
+    newNodeSetPartMaterial.order = colors.indexOf(color);
     ////////////////////////////Задать материал
     nodes.push(newNodeSetLDSPMaterial);
+    nodes.push(newNodeSetPartMaterial);
 });
 
 
