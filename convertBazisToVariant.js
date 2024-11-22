@@ -2035,7 +2035,7 @@ function getMeshCacheKey(obj) {
     return `${obj.Name}_${count}`;
 }
 
-function getOrCreateMesh(item, index) {
+function getOrCreateMeshInfo(item, index) {
     const cacheKey = getMeshCacheKey(item);
     
     if (meshCache.has(cacheKey)) {
@@ -2045,6 +2045,9 @@ function getOrCreateMesh(item, index) {
     let vertices = [];
     let faces = [];
     let totalVertices = 0;
+    
+    let minX = Infinity, minY = Infinity, minZ = Infinity;
+    let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
     
     function exportObject(obj) {
         if (obj.TriListsCount) {
@@ -2060,9 +2063,25 @@ function getOrCreateMesh(item, index) {
                     let v2 = obj.ToGlobal(tri.Vertex2);
                     let v3 = obj.ToGlobal(tri.Vertex3);
                     
-                    vertices.push(`v ${v1.x/1000} ${v1.y/1000} ${v1.z/1000}`);
-                    vertices.push(`v ${v2.x/1000} ${v2.y/1000} ${v2.z/1000}`);
-                    vertices.push(`v ${v3.x/1000} ${v3.y/1000} ${v3.z/1000}`);
+                    // Конвертируем в метры
+                    const points = [
+                        [v1.x/1000, v1.y/1000, v1.z/1000],
+                        [v2.x/1000, v2.y/1000, v2.z/1000],
+                        [v3.x/1000, v3.y/1000, v3.z/1000]
+                    ];
+
+                    points.forEach(point => {
+                        minX = Math.min(minX, point[0]);
+                        minY = Math.min(minY, point[1]);
+                        minZ = Math.min(minZ, point[2]);
+                        maxX = Math.max(maxX, point[0]);
+                        maxY = Math.max(maxY, point[1]);
+                        maxZ = Math.max(maxZ, point[2]);
+                    });
+                    
+                    vertices.push(`v ${points[0][0]} ${points[0][1]} ${points[0][2]}`);
+                    vertices.push(`v ${points[1][0]} ${points[1][1]} ${points[1][2]}`);
+                    vertices.push(`v ${points[2][0]} ${points[2][1]} ${points[2][2]}`);
                     
                     let baseIndex = totalVertices + 1;
                     faces.push(`f ${baseIndex} ${baseIndex+1} ${baseIndex+2}`);
@@ -2079,35 +2098,49 @@ function getOrCreateMesh(item, index) {
         }
     }
     
-    
     exportObject(item);
-    
+
+    // Проверяем, есть ли вершины
+    if (vertices.length === 0) {
+        // Возвращаем минимальные допустимые размеры
+        const defaultSize = 0.001; // 1мм
+        return {
+            name: `model_${index}`,
+            size: {x: defaultSize, y: defaultSize, z: defaultSize},
+            min: {x: 0, y: 0, z: 0},
+            max: {x: defaultSize, y: defaultSize, z: defaultSize}
+        };
+    }
+
     const meshName = `model_${index}`
+    const realSize = {
+        x: maxX - minX,
+        y: maxY - minY,
+        z: maxZ - minZ
+    };
     
     fs.writeFileSync(`results/${meshName}.obj`, [...vertices, ...faces].join('\n'));
-    
-    meshCache.set(cacheKey, meshName);
-    
-    return meshName;
-    
+
+    meshCache.set(cacheKey, {
+        name: meshName,
+        size: realSize,
+        min: { x: minX, y: minY, z: minZ },
+        max: { x: maxX, y: maxY, z: maxZ }
+    });
+
+    return meshCache.get(cacheKey);
 }
 
 function createMeshComponent(obj, index, parentRotation = null) {
-    
-    const meshName = getOrCreateMesh(obj, index)
-
-
+    const meshInfo = getOrCreateMeshInfo(obj, index)
 
     let component = {};
-
+    component.position = getNewComponentPosition(obj)
     // component.position = {
     //     "x": 0,
     //     "y": 0,
     //     "z": 0
     // };
-
-    component.position = getNewComponentPosition(obj)
-
     // let localRotation = {
     //     x: obj.Rotation.ImagPart.x,
     //     y: -obj.Rotation.ImagPart.y,
@@ -2117,7 +2150,6 @@ function createMeshComponent(obj, index, parentRotation = null) {
     // component.rotation = parentRotation 
     //     ? multiplyQuaternions(parentRotation, localRotation) 
     //     : localRotation;
-
     // component.eulers = quaternionToEuler(component.rotation)
     component.rotation = {
         "x": 0.0,
@@ -2127,9 +2159,9 @@ function createMeshComponent(obj, index, parentRotation = null) {
     },
     
     component.size = {
-        "x": obj.GSize.x,
-        "y": obj.GSize.y,
-        "z": obj.GSize.z
+        "x": meshInfo.size.x,
+        "y": meshInfo.size.y,
+        "z": meshInfo.size.z
     };
 
     component.color = null;
@@ -2160,14 +2192,14 @@ function createMeshComponent(obj, index, parentRotation = null) {
     component.material = "s123mat://" + materialGUID
 
     component.modifier = {
-        "mesh": `file://${meshName}.fbx`,
+        "mesh": `file://${meshInfo.name}.fbx`,
         "node_name": null,
         "use_scale": true,
         "apply_offset": false,
         "mesh_size": {
-            "x": obj.GSize.x/1000,
-            "y": obj.GSize.y/1000,
-            "z": obj.GSize.z/1000
+            "x": meshInfo.size.x,
+            "y": meshInfo.size.y,
+            "z": meshInfo.size.z
         },
         "type": 3
     };
