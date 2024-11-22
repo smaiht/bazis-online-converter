@@ -2103,6 +2103,14 @@ function getOrCreateMeshInfo(item, index) {
     // Проверяем, есть ли вершины
     if (vertices.length === 0) {
         const defaultSize = 0.0001; // 0.1мм
+        
+        vertices = [
+            `v 0 0 0`,
+            `v ${defaultSize} 0 0`,
+            `v 0 ${defaultSize} 0`
+        ];
+        faces = ['f 1 2 3'];
+
         minX = 0;
         minY = 0;
         minZ = 0;
