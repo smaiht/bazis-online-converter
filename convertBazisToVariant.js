@@ -2102,14 +2102,13 @@ function getOrCreateMeshInfo(item, index) {
 
     // Проверяем, есть ли вершины
     if (vertices.length === 0) {
-        // Возвращаем минимальные допустимые размеры
-        const defaultSize = 0.001; // 1мм
-        return {
-            name: `model_${index}`,
-            size: {x: defaultSize, y: defaultSize, z: defaultSize},
-            min: {x: 0, y: 0, z: 0},
-            max: {x: defaultSize, y: defaultSize, z: defaultSize}
-        };
+        const defaultSize = 0.0001; // 0.1мм
+        minX = 0;
+        minY = 0;
+        minZ = 0;
+        maxX = defaultSize;
+        maxY = defaultSize;
+        maxZ = defaultSize;
     }
 
     const meshName = `model_${index}`
