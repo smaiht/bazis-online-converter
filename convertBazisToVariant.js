@@ -2042,9 +2042,7 @@ function getOrCreateMeshInfo(item, index) {
         return meshCache.get(cacheKey);
     }
 
-    let vertices = [];
-    let faces = [];
-    let totalVertices = 0;
+    let points = [];
     
     let minX = Infinity, minY = Infinity, minZ = Infinity;
     let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
@@ -2064,28 +2062,47 @@ function getOrCreateMeshInfo(item, index) {
                     let v3 = obj.ToGlobal(tri.Vertex3);
                     
                     // Конвертируем в метры
-                    const points = [
+                    const triPoints = [
                         [v1.x/1000, v1.y/1000, v1.z/1000],
                         [v2.x/1000, v2.y/1000, v2.z/1000],
                         [v3.x/1000, v3.y/1000, v3.z/1000]
                     ];
 
-                    points.forEach(point => {
+                    triPoints.forEach(point => {
+                        // Обновляем габариты
                         minX = Math.min(minX, point[0]);
                         minY = Math.min(minY, point[1]);
                         minZ = Math.min(minZ, point[2]);
                         maxX = Math.max(maxX, point[0]);
                         maxY = Math.max(maxY, point[1]);
                         maxZ = Math.max(maxZ, point[2]);
+
+                        // и сохраняем точки
+                        points.push(point);
                     });
+
+                    // const points = [
+                    //     [v1.x/1000, v1.y/1000, v1.z/1000],
+                    //     [v2.x/1000, v2.y/1000, v2.z/1000],
+                    //     [v3.x/1000, v3.y/1000, v3.z/1000]
+                    // ];
+
+                    // points.forEach(point => {
+                    //     minX = Math.min(minX, point[0]);
+                    //     minY = Math.min(minY, point[1]);
+                    //     minZ = Math.min(minZ, point[2]);
+                    //     maxX = Math.max(maxX, point[0]);
+                    //     maxY = Math.max(maxY, point[1]);
+                    //     maxZ = Math.max(maxZ, point[2]);
+                    // });
                     
-                    vertices.push(`v ${points[0][0]} ${points[0][1]} ${points[0][2]}`);
-                    vertices.push(`v ${points[1][0]} ${points[1][1]} ${points[1][2]}`);
-                    vertices.push(`v ${points[2][0]} ${points[2][1]} ${points[2][2]}`);
+                    // vertices.push(`v ${points[0][0]} ${points[0][1]} ${points[0][2]}`);
+                    // vertices.push(`v ${points[1][0]} ${points[1][1]} ${points[1][2]}`);
+                    // vertices.push(`v ${points[2][0]} ${points[2][1]} ${points[2][2]}`);
                     
-                    let baseIndex = totalVertices + 1;
-                    faces.push(`f ${baseIndex} ${baseIndex+1} ${baseIndex+2}`);
-                    totalVertices += 3;
+                    // let baseIndex = totalVertices + 1;
+                    // faces.push(`f ${baseIndex} ${baseIndex+1} ${baseIndex+2}`);
+                    // totalVertices += 3;
                 }
             }
         }
@@ -2100,11 +2117,11 @@ function getOrCreateMeshInfo(item, index) {
     
     exportObject(item);
 
-    // Проверяем, есть ли вершины
-    if (vertices.length === 0) {
+    // Ставим плейсхолдеры, если вершин нет
+    if (points.length === 0) {
         const defaultSize = 0.0001; // 0.1мм
         
-        vertices = [
+        points = [
             `v 0 0 0`,
             `v ${defaultSize} 0 0`,
             `v 0 ${defaultSize} 0`
@@ -2117,6 +2134,31 @@ function getOrCreateMeshInfo(item, index) {
         maxX = defaultSize;
         maxY = defaultSize;
         maxZ = defaultSize;
+    }
+
+    // Вычисляем центр после того как собрали все точки
+    const center = {
+        x: (minX + maxX) / 2,
+        y: (minY + maxY) / 2,
+        z: (minZ + maxZ) / 2
+    };
+
+    // Теперь создаем вершины и грани со смещением относительно центра
+    let vertices = [];
+    let faces = [];
+    let totalVertices = 0;
+    
+    // Записываем вершины со смещением
+    for(let i = 0; i < points.length; i += 3) {
+        vertices.push(
+            `v ${points[i][0] - center.x} ${points[i][1] - center.y} ${points[i][2] - center.z}`,
+            `v ${points[i+1][0] - center.x} ${points[i+1][1] - center.y} ${points[i+1][2] - center.z}`,
+            `v ${points[i+2][0] - center.x} ${points[i+2][1] - center.y} ${points[i+2][2] - center.z}`
+        );
+        
+        let baseIndex = totalVertices + 1;  // +1 потому что OBJ использует индексы с 1
+        faces.push(`f ${baseIndex} ${baseIndex+1} ${baseIndex+2}`);
+        totalVertices += 3;
     }
 
     const meshName = `model_${index}`
