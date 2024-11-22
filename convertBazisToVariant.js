@@ -2166,9 +2166,9 @@ function createMeshComponent(obj, index, parentRotation = null) {
     },
     
     component.size = {
-        "x": meshInfo.size.x,
-        "y": meshInfo.size.y,
-        "z": meshInfo.size.z
+        "x": meshInfo.size.x*1000,
+        "y": meshInfo.size.y*1000,
+        "z": meshInfo.size.z*1000
     };
 
     component.color = null;
