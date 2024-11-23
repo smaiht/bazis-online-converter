@@ -2016,6 +2016,7 @@ let meshCache = new Map();
 function getMeshCacheKey(obj) {
     let count = 0;
     
+    // get vertices
     function countRecursive(item) {
         if (item.TriListsCount) {
             for(let i = 0; i < item.TriListsCount; i++) {
@@ -2032,7 +2033,27 @@ function getMeshCacheKey(obj) {
     
     countRecursive(obj);
 
-    return `${obj.Name}_${count}`;
+    // get orientation
+    function formatNumber(num) {
+        return (Math.abs(parseFloat(num.toFixed(3))) < 0.001) ? "0" : num.toFixed(3);
+    }
+    
+    function getOrientationKey(obj) {
+        const localDirs = [
+            {x: 1, y: 0, z: 0},
+            {x: 0, y: 1, z: 0},
+            {x: 0, y: 0, z: 1}
+        ];
+    
+        return localDirs.map(dir => {
+            const global = obj.NToGlobal(dir);
+            return `${formatNumber(global.x)}_${formatNumber(global.y)}_${formatNumber(global.z)}`;
+        }).join('_');
+    }
+
+    const orientation = getOrientationKey(obj);
+
+    return `${obj.Name}_${count}_${orientation}`;
 }
 
 function getOrCreateMeshInfo(item, index) {
