@@ -1,6 +1,18 @@
 import win32gui
 import win32con
+import numpy as np
+import math
+import json
+import win32com.client
+import pythoncom
+from pprint import pprint
+from scipy.spatial.transform import Rotation
+import uuid
+import re
+import time
 
+import subprocess
+import math
 import subprocess
 
 # def resize_window(hwnd, width, height):
@@ -30,6 +42,7 @@ import subprocess
 
 # # resize_window(657996, 768, 1280)
 
+from pro100 import main as convert_pro100 
 
 from dotenv import load_dotenv
 import os
@@ -43,6 +56,7 @@ load_dotenv()
 
 time.sleep(2)
 
+# convert_pro100(pro100_process)
 
 
 
@@ -188,6 +202,12 @@ print("Project attributes:")
 
 
 
+class Rot3D:
+    def __init__(self, x, y, z):
+        self.x = x
+        self.y = y
+        self.z = z
+
 
 for i, entity in enumerate(project.Entities):
     # pprint (dir(entity.GetTypeInfo))
@@ -201,6 +221,24 @@ for i, entity in enumerate(project.Entities):
     
     material_name = entity.material.textureName
     print(material_name)
+    print(entity.rotation.x)
+    original_euler = Rot3D(
+        entity.rotation.x,
+        entity.rotation.y,
+        entity.rotation.z
+    )
+
+    original_rotation = Rotation.from_euler('yxz', [
+        -original_euler.y,  # -pitch
+        original_euler.x,   # roll
+        -original_euler.z   # -yaw
+    ], degrees=False)  # радианы
+
+    entity.unrotate(
+        original_euler.x,
+        original_euler.y,
+        original_euler.z
+    )
 
     # # # Все базовые свойства
     # # base_properties = [

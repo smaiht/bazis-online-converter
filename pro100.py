@@ -279,9 +279,12 @@ def main(pro100_process):
             ], degrees=False)  # радианы
 
             entity.unrotate(
-                original_rotation.x,
-                original_rotation.y, 
-                original_rotation.z
+                # original_rotation.x,
+                # original_rotation.y, 
+                # original_rotation.z
+                original_euler.x,
+                original_euler.y,
+                original_euler.z
             )
 
             # Получаем дополнительный поворот
