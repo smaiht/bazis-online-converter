@@ -55,7 +55,7 @@ def create_material_input(color_name, index, material_guid):
         "type": 7,
         "value": f"s123mat://{material_guid}",
         "settings": {
-            "values": "", # "{{MATERIAL_FOLDERS_PLACEHOLDER}}",
+            "values": "{{MATERIAL_FOLDERS_PLACEHOLDER}}",
             "target": 3,
             "has_none": False,
             "tag": "material",

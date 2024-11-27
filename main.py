@@ -48,8 +48,7 @@ ERROR_DIR = "errors"
 INPUT_MODEL = "model.b3d"
 INPUT_PRO100_MODEL = "model.sto"
 INPUT_DATA = "user_data.json"
-SUCCESS_FILE_FROM_BAZIS = "project.s123proj"
-SUCCESS_FILE_FROM_PRO100 = "project.s123proj"
+SUCCESS_FILE_S123PROJ = "project.s123proj"
 SUCCESS_FILE_TO_BAZIS = "bazis.b3d"
 MAIN_ICON = "main_icon.jpg"
 ICON_SIZE = 512
@@ -312,8 +311,8 @@ def process_folder(folder_path, pirate_mode, project_id):
             kill_bazis(bazis_process)
             return False
 
-        if os.path.exists(os.path.join(SCRIPT_DIR, SUCCESS_FILE_FROM_BAZIS)):
-            log_message(f"Converted successfully: {SUCCESS_FILE_FROM_BAZIS}", IdProject=project_id)
+        if os.path.exists(os.path.join(SCRIPT_DIR, SUCCESS_FILE_S123PROJ)):
+            log_message(f"Converted successfully: {SUCCESS_FILE_S123PROJ}", IdProject=project_id)
             kill_bazis(bazis_process)
             crop_resize_icon()
             return True
@@ -421,12 +420,12 @@ def insert_material_folders():
     material_folders = json.dumps(user_data["MaterialFolders"])
     placeholder = '"{{MATERIAL_FOLDERS_PLACEHOLDER}}"'
     
-    with open(os.path.join(SCRIPT_DIR, SUCCESS_FILE_FROM_BAZIS), "r", encoding='utf-8') as f:
+    with open(os.path.join(SCRIPT_DIR, SUCCESS_FILE_S123PROJ), "r", encoding='utf-8') as f:
         content = f.read()
 
     updated_content = content.replace(placeholder, material_folders)
 
-    with open(os.path.join(SCRIPT_DIR, SUCCESS_FILE_FROM_BAZIS), 'w', encoding='utf-8') as file:
+    with open(os.path.join(SCRIPT_DIR, SUCCESS_FILE_S123PROJ), 'w', encoding='utf-8') as file:
         file.write(updated_content)
 
 
@@ -565,8 +564,8 @@ def main():
                 if process_folder_from_pro100(processing_path, folder_name):
                     log_message("Folder processed successfully")
 
-                    # insert_material_folders()
-                    # log_message("Material Folders IDs inserted successfully", IdProject=folder_name)
+                    insert_material_folders()
+                    log_message("Material Folders IDs inserted successfully", IdProject=folder_name)
 
                     log_message("Trying send to .NET ...")
                     # Send to dotnet
