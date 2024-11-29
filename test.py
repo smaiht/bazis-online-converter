@@ -214,31 +214,40 @@ for i, entity in enumerate(project.Entities):
     # entity.unrotate(RAD_90/5,RAD_90/5,RAD_90/5)
 
 
-    print(f"\n{'='*50}")
-    print(f"Panel #{i + 1} - {entity.name}")
-    print(f"{'='*50}")
+    # print(f"\n{'='*50}")
+    # print(f"Panel #{i + 1} - {entity.name}")
+    # print(f"{'='*50}")
 
     
     material_name = entity.material.textureName
     print(material_name)
-    print(entity.rotation.x)
-    original_euler = Rot3D(
-        entity.rotation.x,
-        entity.rotation.y,
-        entity.rotation.z
-    )
 
-    original_rotation = Rotation.from_euler('yxz', [
-        -original_euler.y,  # -pitch
-        original_euler.x,   # roll
-        -original_euler.z   # -yaw
-    ], degrees=False)  # радианы
+    # print(entity.rotation.x)
+    # original_euler = Rot3D(
+    #     entity.rotation.x,
+    #     entity.rotation.y,
+    #     entity.rotation.z
+    # )
 
-    entity.unrotate(
-        original_euler.x,
-        original_euler.y,
-        original_euler.z
-    )
+    # original_rotation = Rotation.from_euler('yxz', [
+    #     -original_euler.y,  # -pitch
+    #     original_euler.x,   # roll
+    #     -original_euler.z   # -yaw
+    # ], degrees=False)  # радианы
+
+    # entity.unrotate(
+    #     original_euler.x,
+    #     original_euler.y,
+    #     original_euler.z
+    # )
+
+
+
+
+
+
+
+    
 
     # # # Все базовые свойства
     # # base_properties = [

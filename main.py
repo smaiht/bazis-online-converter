@@ -258,7 +258,7 @@ def convert_all_obj_to_fbx(IdProject):
     total_files = len(obj_files)
     
     if total_files == 0:
-        print("No OBJ files found in", SCRIPT_DIR)
+        log_message(f"No OBJ files found in {SCRIPT_DIR}")
         return
         
     log_message(f"Found {total_files} OBJ files to convert", IdProject=IdProject)
@@ -268,18 +268,19 @@ def convert_all_obj_to_fbx(IdProject):
         fbx_path = obj_path.replace('.obj', '.fbx')
         
         try:
-            print(f"\nConverting: {filename}")
+            log_message(f"\nConverting: {filename}")
             subprocess.run([ASSIMP_PATH, 'export', obj_path, fbx_path], check=True)
             
             os.remove(obj_path)
             success_count += 1
-            print(f"Success: {filename} -> {os.path.basename(fbx_path)}")
+            log_message(f"Success: {filename} -> {os.path.basename(fbx_path)}")
             
         except Exception as e:
             error_count += 1
-            print(f"Error converting {filename}: {str(e)}")
+            log_message(f"Error converting {filename}: {str(e)}")
 
     log_message(f".OBJ models conveted to .FBX successfully: {success_count}/ {total_files}", IdProject=IdProject)
+    return success_count
 
 
 
@@ -429,7 +430,7 @@ def insert_material_folders():
         file.write(updated_content)
 
 
-def send_project_to_dotnet(from_bazis = True):
+def send_project_to_dotnet(from_bazis = True, create_usdc = False, create_icon = False, create_sequence = False):
     with open(os.path.join(SCRIPT_DIR, INPUT_DATA), "r") as f:
         user_data = json.load(f)
     
@@ -459,6 +460,13 @@ def send_project_to_dotnet(from_bazis = True):
             file_path = os.path.join(SCRIPT_DIR, filename)
             if os.path.isfile(file_path) and filename == SUCCESS_FILE_TO_BAZIS:
                 files.append(('Files', (filename, open(file_path, 'rb'), 'application/octet-stream')))
+
+    if create_usdc:
+        data["CreateUsdc"] = True
+    if create_icon:
+        data["CreateIcon"] = True
+    if create_sequence:
+        data["CreateSequence"] = True
 
 
     try:
@@ -520,11 +528,11 @@ def main():
                     insert_material_folders()
                     log_message("Material Folders IDs inserted successfully", IdProject=folder_name)
 
-                    convert_all_obj_to_fbx(folder_name)
+                    any_models_there = convert_all_obj_to_fbx(folder_name)
 
                     log_message("Trying send to .NET ...")
                     # Send to dotnet
-                    if send_project_to_dotnet():
+                    if send_project_to_dotnet(create_usdc=any_models_there):
                         log_message("Data sent to .NET successfully", IdProject=folder_name)
                         shutil.rmtree(processing_path)
                         log_message(f"Removed processing folder: {processing_path}")
@@ -569,7 +577,7 @@ def main():
 
                     log_message("Trying send to .NET ...")
                     # Send to dotnet
-                    if send_project_to_dotnet():
+                    if send_project_to_dotnet(create_icon=True, create_sequence=True):
                         log_message("Data sent to .NET successfully", IdProject=folder_name)
                         shutil.rmtree(processing_path)
                         log_message(f"Removed processing folder: {processing_path}")
