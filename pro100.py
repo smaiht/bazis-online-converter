@@ -243,6 +243,7 @@ def main(pro100_process):
     details = {}
 
     psto_app = win32com.client.Dispatch("P100.Application")
+    errors = None
     
     try:
         if not psto_app.Visible:
@@ -465,6 +466,7 @@ def main(pro100_process):
 
     except Exception as e:
         print(f"An error occurred: {str(e)}")
+        errors = f"An error occurred: {str(e)}"
 
     finally:
         print('finally')
@@ -476,6 +478,7 @@ def main(pro100_process):
             pro100_process.kill()
         
         print('pro100_process terminated')
+        return errors
 
 if __name__ == "__main__":
     main()
