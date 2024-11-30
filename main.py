@@ -339,6 +339,7 @@ def process_folder_from_pro100(folder_path, project_id):
     errors = convert_pro100(pro100_process)
     if errors:
         log_message(errors, level="ERROR", IdProject=project_id, tg=True)
+        return False
 
     return True
 
