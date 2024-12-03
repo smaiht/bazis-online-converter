@@ -68,6 +68,23 @@ async def retry(id_project: str):
         log_message(f"Error moving project {id_project}: {str(e)}", level="ERROR")
         return JSONResponse(content={}, status_code=200)
 
+@app.post("/retry-pro100/{id_project}")
+async def retry(id_project: str):
+    log_message(f"Got request to retry converting project: {id_project}", IdProject=id_project, tg=True)
+    error_folder = os.path.join(ERROR_DIR, id_project)
+    input_folder = os.path.join(INPUTS_FROM_PRO100, id_project)
+
+    if not os.path.exists(error_folder):
+        log_message(f"Project {id_project} not found in ERRORS folder", IdProject=id_project, tg=True)
+    
+    try:
+        shutil.move(error_folder, input_folder)
+        log_message(f"Moved project {id_project} from ERRORS to INPUTS for retry")
+
+    except Exception as e:
+        log_message(f"Error moving project {id_project}: {str(e)}", level="ERROR-PRO100")
+        return JSONResponse(content={}, status_code=200)
+
 @app.post("/upload_bazis_project/")
 async def create_upload_files(files: List[UploadFile] = File(...), user_data: str = Form(...)):
     try:

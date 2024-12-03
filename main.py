@@ -338,7 +338,7 @@ def process_folder_from_pro100(folder_path, project_id):
     
     errors = convert_pro100(pro100_process)
     if errors:
-        log_message(errors, level="ERROR", IdProject=project_id, tg=True)
+        log_message(errors, level="ERROR-PRO100", IdProject=project_id, tg=True)
         return False
 
     return True
@@ -433,7 +433,7 @@ def insert_material_folders():
         file.write(updated_content)
 
 
-def send_project_to_dotnet(from_bazis = True, create_usdc = False, create_icon = False, create_sequence = False):
+def send_project_to_dotnet(from_bazis = True, create_usdc = False, create_icon = False, create_sequence = False, program = None):
     with open(os.path.join(SCRIPT_DIR, INPUT_DATA), "r") as f:
         user_data = json.load(f)
     
@@ -479,8 +479,12 @@ def send_project_to_dotnet(from_bazis = True, create_usdc = False, create_icon =
         )
 
         if not response.ok:
-            log_message(f"Request failed with status code {response.status_code}", 'ERROR')
-            log_message(f"Response content: {response.text}", 'ERROR')
+            error_level = 'ERROR'
+            if program:
+                error_level += program
+
+            log_message(f"Request failed with status code {response.status_code}", error_level)
+            log_message(f"Response content: {response.text}", error_level)
 
         return response.ok
 
@@ -580,19 +584,19 @@ def main():
 
                     log_message("Trying send to .NET ...")
                     # Send to dotnet
-                    if send_project_to_dotnet(create_icon=True, create_sequence=True):
+                    if send_project_to_dotnet(create_icon=True, create_sequence=True, program="PRO100"):
                         log_message("Data sent to .NET successfully", IdProject=folder_name)
                         shutil.rmtree(processing_path)
                         log_message(f"Removed processing folder: {processing_path}")
                     else:
-                        log_message("Failed to send to .NET, moving to ERRORS", "ERROR", IdProject=folder_name, tg=True)
+                        log_message("Failed to send to .NET, moving to ERRORS", "ERROR-PRO100", IdProject=folder_name, tg=True)
                         error_path = os.path.join(ERROR_DIR, folder_name)
                         if os.path.exists(error_path):
                             shutil.rmtree(error_path)
                         shutil.move(processing_path, error_path)
                         log_message(f"Moved to error folder: {error_path}")
                 else:
-                    log_message("Failed to process folder, moving to ERRORS", "ERROR")
+                    log_message("Failed to process folder, moving to ERRORS", "ERROR-PRO100")
                     error_path = os.path.join(ERROR_DIR, folder_name)
                     if os.path.exists(error_path):
                         shutil.rmtree(error_path)
