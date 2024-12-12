@@ -222,7 +222,8 @@ def normalize_panel_rotation(entity):
     if (abs(base_x - target_height) < eps and 
         abs(base_y - target_depth) < eps and 
         abs(base_z - target_width) < eps):
-        return Rot3D(RAD_90, RAD_90, 0)
+        return Rot3D(RAD_90, 0, RAD_90)
+        # return Rot3D(RAD_90, RAD_90, 0)
         # return Rot3D(RAD_90, 0, RAD_90) # TODO: something sketchy here... It's temporary
 
     # Случай 6: (x,y,z) = (d,w,l) - Лежачая панель, но повернута вокруг своей оси на 90
@@ -304,7 +305,32 @@ def main(pro100_process):
 
             # final_rotation = original_rotation * additional_rotation
             # quaternion = final_rotation.as_quat()
-            quaternion = original_rotation.as_quat()
+
+
+
+
+            additional_rotation = normalize_panel_rotation(entity)
+            entity.rotate(
+                additional_rotation.x,
+                additional_rotation.y,
+                additional_rotation.z
+            )
+            additional_euler = Rot3D(
+                entity.rotation.x,
+                entity.rotation.y,
+                entity.rotation.z
+            )
+            additional_rotation = Rotation.from_euler('yxz', [
+                -additional_euler.y,  # -pitch
+                additional_euler.x,   # roll
+                -additional_euler.z   # -yaw
+            ], degrees=False)  # радианы
+
+
+
+            final_rotation = additional_rotation * original_rotation
+            # final_rotation = original_rotation * additional_rotation
+            quaternion = final_rotation.as_quat()
 
 
             material_name = entity.material.textureName
