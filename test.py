@@ -173,8 +173,7 @@ def normalize_panel_rotation(entity):
         abs(base_y - target_depth) < eps and 
         abs(base_z - target_width) < eps):
         print("Случай 5: (x,y,z) = (l,d,w) - Боковая панель, но повернута вокруг своей оси на 90")
-        # return Rot3D(RAD_90, RAD_90, 0)
-        return Rot3D(RAD_90, 0, RAD_90) # TODO: something sketchy here... It's temporary
+        return Rot3D(RAD_90, RAD_90, 0)
 
     # Случай 6: (x,y,z) = (d,w,l) - Лежачая панель, но повернута вокруг своей оси на 90
     if (abs(base_x - target_depth) < eps and 
@@ -218,20 +217,37 @@ for entity in project.Entities:
     print(f"{entity.name}")
     if hasattr(entity, 'dimensions'):
         og = entity.rotation
-        print(f"ROT {og.x, og.y, og.z}")
+        print(f"og ROT {og.x, og.y, og.z}")
 
         original_euler = Rot3D(
             entity.rotation.x,
             entity.rotation.y,
             entity.rotation.z
         )
+
+        original_rotation = Rotation.from_euler('yxz', [
+            -original_euler.y,  # -pitch
+            original_euler.x,   # roll
+            -original_euler.z   # -yaw
+        ], degrees=False)  # радианы
+        
         entity.unrotate(
             original_euler.x,
             original_euler.y,
             original_euler.z
         )
 
-        kek = normalize_panel_rotation(entity)
+        base_rotation = normalize_panel_rotation(entity)
+
+        additional_rotation = Rotation.from_euler('yxz', [
+            -base_rotation.y,  # -pitch
+            base_rotation.x,   # roll
+            -base_rotation.z   # -yaw
+        ], degrees=False)  # радианы
+
+
+        final_rotation = original_rotation * additional_rotation
+        quaternion = final_rotation.as_quat()
         
         # entity.rotate(
         #     kek.x,
@@ -242,6 +258,12 @@ for entity in project.Entities:
 
         og = entity.rotation
         print(f"ROT {og.x, og.y, og.z}")
+        
+        print("Additional euler angles:", base_rotation.x, base_rotation.y, base_rotation.z)
+        print("Original rotation quaternion:", original_rotation.as_quat())
+        print("Additional rotation quaternion:", additional_rotation.as_quat())
+
+        print(f"quaternion {quaternion}")
         # entity.unrotate(og.x, og.y, og.z)
         # entity.unrotate(RAD_90/5,RAD_90/5,RAD_90/5)
 

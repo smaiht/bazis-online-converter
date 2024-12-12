@@ -294,16 +294,17 @@ def main(pro100_process):
             )
 
             # Получаем дополнительный поворот
-            base_rotation = normalize_panel_rotation(entity)
-            additional_rotation = Rotation.from_euler('yxz', [
-                -base_rotation.y,  # -pitch
-                base_rotation.x,   # roll
-                -base_rotation.z   # -yaw
-            ], degrees=False)  # радианы
+            # base_rotation = normalize_panel_rotation(entity)
+            # additional_rotation = Rotation.from_euler('yxz', [
+            #     -base_rotation.y,  # -pitch
+            #     base_rotation.x,   # roll
+            #     -base_rotation.z   # -yaw
+            # ], degrees=False)  # радианы
 
 
-            final_rotation = additional_rotation * original_rotation
-            quaternion = final_rotation.as_quat()
+            # final_rotation = original_rotation * additional_rotation
+            # quaternion = final_rotation.as_quat()
+            quaternion = original_rotation.as_quat()
 
 
             material_name = entity.material.textureName
