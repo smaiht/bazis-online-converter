@@ -222,7 +222,8 @@ def normalize_panel_rotation(entity):
     if (abs(base_x - target_height) < eps and 
         abs(base_y - target_depth) < eps and 
         abs(base_z - target_width) < eps):
-        return Rot3D(RAD_90, 0, RAD_90)
+        return Rot3D(RAD_90/6, RAD_90/3, RAD_90/9)
+        # return Rot3D(RAD_90, 0, RAD_90)
         # return Rot3D(RAD_90, RAD_90, 0)
         # return Rot3D(RAD_90, 0, RAD_90) # TODO: something sketchy here... It's temporary
 
