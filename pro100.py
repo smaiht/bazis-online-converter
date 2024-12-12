@@ -328,8 +328,8 @@ def main(pro100_process):
 
 
 
-            final_rotation = additional_rotation * original_rotation
-            # final_rotation = original_rotation * additional_rotation
+            # final_rotation = additional_rotation * original_rotation
+            final_rotation = original_rotation * additional_rotation
             quaternion = final_rotation.as_quat()
 
 
