@@ -217,6 +217,8 @@ print("Project attributes:")
 for entity in project.Entities:
     print(f"{entity.name}")
     if hasattr(entity, 'dimensions'):
+        og = entity.rotation
+        print(f"ROT {og.x, og.y, og.z}")
 
         original_euler = Rot3D(
             entity.rotation.x,
@@ -229,10 +231,18 @@ for entity in project.Entities:
             original_euler.z
         )
 
-        normalize_panel_rotation(entity)
+        kek = normalize_panel_rotation(entity)
+        
+        # entity.rotate(
+        #     kek.x,
+        #     kek.y,
+        #     kek.z
+        # )
+
+
         og = entity.rotation
-        # entity.unrotate(og.x, og.y, og.z)
         print(f"ROT {og.x, og.y, og.z}")
+        # entity.unrotate(og.x, og.y, og.z)
         # entity.unrotate(RAD_90/5,RAD_90/5,RAD_90/5)
 
 
