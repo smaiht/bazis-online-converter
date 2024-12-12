@@ -222,8 +222,8 @@ def normalize_panel_rotation(entity):
     if (abs(base_x - target_height) < eps and 
         abs(base_y - target_depth) < eps and 
         abs(base_z - target_width) < eps):
-        # return Rot3D(RAD_90, RAD_90, 0)
-        return Rot3D(RAD_90, RAD_90, 0) # TODO: something sketchy here... It's temporary
+        return Rot3D(RAD_90, RAD_90, 0)
+        # return Rot3D(RAD_90, 0, RAD_90) # TODO: something sketchy here... It's temporary
 
     # Случай 6: (x,y,z) = (d,w,l) - Лежачая панель, но повернута вокруг своей оси на 90
     if (abs(base_x - target_depth) < eps and 
@@ -302,7 +302,7 @@ def main(pro100_process):
             ], degrees=False)  # радианы
 
 
-            final_rotation = original_rotation * additional_rotation
+            final_rotation = additional_rotation * original_rotation
             quaternion = final_rotation.as_quat()
 
 
