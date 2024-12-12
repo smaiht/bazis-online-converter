@@ -109,6 +109,13 @@ def analyze_panel(entity):
 import math 
 RAD_90 = math.pi / 2
 
+class Rot3D:
+    def __init__(self, x, y, z):
+        self.x = x
+        self.y = y
+        self.z = z
+
+
 
 def normalize_panel_rotation(entity):
     base_x = entity.dimensions.x
@@ -118,51 +125,64 @@ def normalize_panel_rotation(entity):
     target_width = entity.width
     target_height = entity.length
     target_depth = entity.depth
-    
-    eps = 0.001  # погрешность для сравнения float
-    
+
     print(f"Базовые размеры (x,y,z): {base_x}, {base_y}, {base_z}")
     print(f"Целевые размеры (w,h,d): {target_width}, {target_height}, {target_depth}")
+
+    eps = 0.001  # погрешность для сравнения float
     
     if (abs(base_x - target_width) < eps and 
         abs(base_y - target_height) < eps and 
         abs(base_z - target_depth) < eps):
         print("Нормальная панель - не поворачиваем.")
-        # entity.rotate(0, 0, 0)
-        return
+        return Rot3D(
+            0,
+            0,
+            0
+        )
         
     if (abs(base_x - target_depth) < eps and 
         abs(base_y - target_height) < eps and 
         abs(base_z - target_width) < eps):
         print("Боковая панель - поворачиваем на 90° вокруг Y")
-        # entity.rotate(0, RAD_90, 0)
-        return
+        return Rot3D(
+            0,
+            RAD_90,
+            0
+        )
 
     if (abs(base_x - target_width) < eps and 
         abs(base_y - target_depth) < eps and 
         abs(base_z - target_height) < eps):
         print("Лежачая панель - поворачиваем на 90° вокруг X")
-        # entity.rotate(RAD_90, 0, 0)
-        return
+        return Rot3D(
+            RAD_90,
+            0,
+            0
+        )
+    
+    # Случай 4: (x,y,z) = (l,w,d) - Нормальная панель, но повернута вокруг своей оси на 90
+    if (abs(base_x - target_height) < eps and 
+        abs(base_y - target_width) < eps and 
+        abs(base_z - target_depth) < eps):
+        print("Случай 4: (x,y,z) = (l,w,d) - Нормальная панель, но повернута вокруг своей оси на 90")
+        return Rot3D(0, 0, RAD_90)
 
-    # # Случай 4: (x,y,z) = (l,w,d) - новый случай
-    # if (abs(base_x - target_length) < eps and 
-    #     abs(base_y - target_width) < eps and 
-    #     abs(base_z - target_depth) < eps):
-    #     return Rot3D(0, 0, RAD_90)
+    # Случай 5: (x,y,z) = (l,d,w) - Боковая панель, но повернута вокруг своей оси на 90
+    if (abs(base_x - target_height) < eps and 
+        abs(base_y - target_depth) < eps and 
+        abs(base_z - target_width) < eps):
+        print("Случай 5: (x,y,z) = (l,d,w) - Боковая панель, но повернута вокруг своей оси на 90")
+        # return Rot3D(RAD_90, RAD_90, 0)
+        return Rot3D(RAD_90, 0, RAD_90) # TODO: something sketchy here... It's temporary
 
-    # # Случай 5: (x,y,z) = (l,d,w) - новый случай
-    # if (abs(base_x - target_length) < eps and 
-    #     abs(base_y - target_depth) < eps and 
-    #     abs(base_z - target_width) < eps):
-    #     return Rot3D(0, -RAD_90, RAD_90)
-
-    # # Случай 6: (x,y,z) = (d,w,l) - новый случай
-    # if (abs(base_x - target_depth) < eps and 
-    #     abs(base_y - target_width) < eps and 
-    #     abs(base_z - target_length) < eps):
-    #     return Rot3D(RAD_90, RAD_90, 0)
-
+    # Случай 6: (x,y,z) = (d,w,l) - Лежачая панель, но повернута вокруг своей оси на 90
+    if (abs(base_x - target_depth) < eps and 
+        abs(base_y - target_width) < eps and 
+        abs(base_z - target_height) < eps):
+        print("Случай 6: (x,y,z) = (d,w,l) - Лежачая панель, но повернута вокруг своей оси на 90")
+        return Rot3D(RAD_90, 0, RAD_90)
+    
 
     print("ВНИМАНИЕ: Не удалось определить правильный поворот!")
     print("Требуется добавить новый случай в функцию")
@@ -193,53 +213,70 @@ print("Project attributes:")
 
 
 
-# # Применяем ко всем панелям
-# for entity in project.Entities:
-#     if hasattr(entity, 'dimensions'):
-#         normalize_panel_rotation(entity)
+# Применяем ко всем панелям
+for entity in project.Entities:
+    print(f"{entity.name}")
+    if hasattr(entity, 'dimensions'):
+
+        original_euler = Rot3D(
+            entity.rotation.x,
+            entity.rotation.y,
+            entity.rotation.z
+        )
+        entity.unrotate(
+            original_euler.x,
+            original_euler.y,
+            original_euler.z
+        )
+
+        normalize_panel_rotation(entity)
+        og = entity.rotation
+        # entity.unrotate(og.x, og.y, og.z)
+        print(f"ROT {og.x, og.y, og.z}")
+        # entity.unrotate(RAD_90/5,RAD_90/5,RAD_90/5)
 
 
 
 
 
-class Rot3D:
-    def __init__(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
+# class Rot3D:
+#     def __init__(self, x, y, z):
+#         self.x = x
+#         self.y = y
+#         self.z = z
 
 
-for i, entity in enumerate(project.Entities):
-    # pprint (dir(entity.GetTypeInfo))
-    # entity.unrotate(RAD_90/5,RAD_90/5,RAD_90/5)
+# for i, entity in enumerate(project.Entities):
+#     # pprint (dir(entity.GetTypeInfo))
+#     # entity.unrotate(RAD_90/5,RAD_90/5,RAD_90/5)
 
 
-    # print(f"\n{'='*50}")
-    # print(f"Panel #{i + 1} - {entity.name}")
-    # print(f"{'='*50}")
+#     # print(f"\n{'='*50}")
+#     # print(f"Panel #{i + 1} - {entity.name}")
+#     # print(f"{'='*50}")
 
     
-    material_name = entity.material.textureName
-    print(material_name)
+#     material_name = entity.material.textureName
+#     print(material_name)
 
-    # print(entity.rotation.x)
-    # original_euler = Rot3D(
-    #     entity.rotation.x,
-    #     entity.rotation.y,
-    #     entity.rotation.z
-    # )
+#     # print(entity.rotation.x)
+#     # original_euler = Rot3D(
+#     #     entity.rotation.x,
+#     #     entity.rotation.y,
+#     #     entity.rotation.z
+#     # )
 
-    # original_rotation = Rotation.from_euler('yxz', [
-    #     -original_euler.y,  # -pitch
-    #     original_euler.x,   # roll
-    #     -original_euler.z   # -yaw
-    # ], degrees=False)  # радианы
+#     # original_rotation = Rotation.from_euler('yxz', [
+#     #     -original_euler.y,  # -pitch
+#     #     original_euler.x,   # roll
+#     #     -original_euler.z   # -yaw
+#     # ], degrees=False)  # радианы
 
-    # entity.unrotate(
-    #     original_euler.x,
-    #     original_euler.y,
-    #     original_euler.z
-    # )
+#     # entity.unrotate(
+#     #     original_euler.x,
+#     #     original_euler.y,
+#     #     original_euler.z
+#     # )
 
 
 
