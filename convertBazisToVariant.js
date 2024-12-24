@@ -2372,19 +2372,20 @@ function getOrCreateMeshInfo(item, index) {
 
     // Обработка пустой модели
     if (vertices.length === 0) {
-        const defaultSize = 0.0001;
-        vertices = [
-            [0, 0, 0],
-            [defaultSize, 0, 0],
-            [0, defaultSize, 0]
-        ];
-        faces = ['f 1 2 3'];
-        minX = 0;
-        minY = 0;
-        minZ = 0;
-        maxX = defaultSize;
-        maxY = defaultSize;
-        maxZ = defaultSize;
+        return null;
+        // const defaultSize = 0.0001;
+        // vertices = [
+        //     [0, 0, 0],
+        //     [defaultSize, 0, 0],
+        //     [0, defaultSize, 0]
+        // ];
+        // faces = ['f 1 2 3'];
+        // minX = 0;
+        // minY = 0;
+        // minZ = 0;
+        // maxX = defaultSize;
+        // maxY = defaultSize;
+        // maxZ = defaultSize;
     }
 
     // Вычисляем центр
@@ -2422,6 +2423,9 @@ function getOrCreateMeshInfo(item, index) {
 
 function createMeshComponent(obj, index, parentRotation = null) {
     const meshInfo = getOrCreateMeshInfo(obj, index)
+    if (!meshInfo) {
+        return null;
+    }
 
     let component = {};
     component.position = getNewComponentPosition(obj)
@@ -2619,7 +2623,9 @@ function processLevel(
 
         } else {
             component = createMeshComponent(item, totalProcessed, parentRotation);
-
+            if (!component) {
+                return; // Выходим из функции если компонент null
+            }
         }
 
 
