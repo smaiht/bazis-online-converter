@@ -148,13 +148,12 @@ def ungroup_all(project):
     while True:
         found_groups = False
         selection.clear()
-        
+
         for entity in project.Entities:
-            # TODO: пропускаем, но по сути можно их разлокать и рисовать ЗАГОТОВКАМИ, это неведомые наборы прямоугольников
             if entity.entityClass == 'IGroupEntity' and not entity.locked:
                 selection.add(entity)
                 found_groups = True
-        
+
         if not found_groups:
             break
             
@@ -243,11 +242,12 @@ def normalize_panel_rotation(entity):
     print("Требуется добавить новый случай в функцию")
     print(f"Базовые размеры (x,y,z): {base_x}, {base_y}, {base_z}")
     print(f"Целевые размеры (w,h,d): {target_width}, {target_height}, {target_depth}")
+    return None
 
 
 
 
-def main(pro100_process):
+def main():
     components = []
     inputs = []
     nodes = []
@@ -258,14 +258,14 @@ def main(pro100_process):
     errors = None
     
     try:
-        if not psto_app.Visible:
-            psto_app.FileOpen()
+        # if not psto_app.Visible:
+        #     psto_app.FileOpen()
 
         project = psto_app.Project
 
-        project.loadFromFIle('results/model.sto')
+        # project.loadFromFIle('results/model.sto')
 
-        time.sleep(5)
+        # time.sleep(5)
 
         ungroup_all(project)
 
@@ -319,13 +319,13 @@ def main(pro100_process):
 
             additional_rotation = normalize_panel_rotation(entity)
             if not additional_rotation: # skip unidentified parts
+                print(i, entity.name)
                 continue
             # TODO: ...
             # ВНИМАНИЕ: Не удалось определить правильный поворот!
             # Требуется добавить новый случай в функцию
             # Базовые размеры (x,y,z): 0.03407073210235103, 0.03507090097669988, 0.019433631573827596
             # Целевые размеры (w,h,d): 0.03500000000000005, 0.034999999999999885, 0.005000000000000033
-
 
             entity.rotate(
                 additional_rotation.x,
@@ -517,17 +517,17 @@ def main(pro100_process):
         print(f"An error occurred: {str(e)}")
         errors = f"An error occurred: {str(e)}"
 
-    finally:
-        print('finally')
-        try:
-            pro100_process.terminate()
-            pro100_process.wait(timeout = 3)
-        except subprocess.TimeoutExpired:
-            print('pro100_process did not terminate gracefully, forcing...')
-            pro100_process.kill()
+    # finally:
+    #     print('finally')
+    #     try:
+    #         pro100_process.terminate()
+    #         pro100_process.wait(timeout = 3)
+    #     except subprocess.TimeoutExpired:
+    #         print('pro100_process did not terminate gracefully, forcing...')
+    #         pro100_process.kill()
         
-        print('pro100_process terminated')
-        return errors
+    #     print('pro100_process terminated')
+    #     return errors
 
 if __name__ == "__main__":
     main()

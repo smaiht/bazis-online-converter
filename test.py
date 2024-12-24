@@ -62,21 +62,6 @@ time.sleep(2)
 
 
 
-def ungroup_all(project):
-    selection = project.selection
-    while True:
-        found_groups = False
-        selection.clear()
-        
-        for entity in project.Entities:
-            if entity.entityClass == 'IGroupEntity':
-                selection.add(entity)
-                found_groups = True
-        
-        if not found_groups:
-            break
-            
-        selection.ungroup()
 
 def analyze_panel(entity):
     # Получаем базовые размеры
@@ -194,11 +179,31 @@ def normalize_panel_rotation(entity):
 
 
 
+def ungroup_all(project):
+    selection = project.selection
+    while True:
+        print('test')
+        found_groups = False
+        selection.clear()
+        
+        for entity in project.Entities:
+            if entity.entityClass == 'IGroupEntity':
+                selection.add(entity)
+                found_groups = True
+        
+        if not found_groups:
+            break
+            
+        selection.ungroup()
+
+
+
 
 psto_app = win32com.client.Dispatch("P100.Application")
 
 project = psto_app.Project
-ungroup_all(project)
+print("Application methods:")
+# ungroup_all(project)
 
 print("Application methods:")
 # pprint(dir(psto_app))
@@ -214,11 +219,14 @@ print("Project attributes:")
 
 # Применяем ко всем панелям
 for entity in project.Entities:
-    print(f"{entity.name}")
-    if hasattr(entity, 'dimensions'):
-        # entity.rotate(RAD_90, 0, RAD_90)
-        og = entity.rotation
-        print(f"og ROT {og.x, og.y, og.z}")
+    print(f"{entity.name}, locaked? - {entity.locked}, locks? - {entity.locks}")
+    print(entity.reportAsPart)
+    print(entity.entityClass)
+
+    # if hasattr(entity, 'dimensions'):
+    #     # entity.rotate(RAD_90, 0, RAD_90)
+    #     og = entity.rotation
+    #     print(f"og ROT {og.x, og.y, og.z}")
 
         # original_euler = Rot3D(
         #     entity.rotation.x,
