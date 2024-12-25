@@ -1096,6 +1096,68 @@ function processLevel(
 
     // BLOCK
     if (item.toString() === '[object TFurnBlock]') {
+        
+        let localRotation = {
+            x: item.Rotation.ImagPart.x,
+            y: -item.Rotation.ImagPart.y,
+            z: -item.Rotation.ImagPart.z,
+            w: item.Rotation.RealPart
+        };
+        currentRotation = parentRotation 
+            ? multiplyQuaternions(parentRotation, localRotation) 
+            : localRotation;
+
+        
+        if (item.AnimType) {
+            console.log(item.Name)
+            console.log(item.AnimType)
+            console.log()
+        }
+
+
+        if (!currentAnimType && item.AnimType && item.Count) { // set current animation if not yet (only works for level 1)
+            // what to do with 1 and etc?
+            // 1 - just a block
+            // 9 - leg(wtf?)
+            // 10 - handle
+            // 11 - front panel
+
+            if (item.AnimType >= 2 && item.AnimType <= 5) { // Rotate
+                currentAnimType = item.AnimType
+
+                const newPositions = getAnimationPosition(item)
+                initialPoint = newPositions.center // this is doing nothing at all
+                axisStart = newPositions.axisStart
+                axisEnd = newPositions.axisEnd
+                let doorAngle = newPositions.doorAngle
+                
+                // inputName = `${item.Name} Поворот`
+                inputName = generateUniqueInputName(item.Name, "Поворот")
+                const newInput = createRotateInput(inputName, doorAngle)
+                // inputs.push(newInput)
+                console.log('input ROT created!!!')
+
+            } else if (item.AnimType >= 6 && item.AnimType <= 8) { // Translate (8 - Z; 6,7 - X)
+                currentAnimType = item.AnimType
+
+                const newPositions = getAnimationPosition(item)
+                axisStart = newPositions.axisStart
+                axisEnd = newPositions.axisEnd
+
+                // // get axis: 
+                // // GLOBAL ?
+                // axisStart = item.Animation.AxisStart // temporary
+                // axisEnd = item.Animation.AxisEnd // temporary
+
+                let offset = {min: 0, max: 100}
+
+                // inputName = `${item.Name} Смещение`
+                inputName = generateUniqueInputName(item.Name, "Смещение")
+                const newInput = createTranslateInput(inputName, offset)
+                // inputs.push(newInput)
+                console.log('input TR created!!!')
+            }
+        }
     }
 
     // EVERYTHING ELSE
@@ -1117,11 +1179,28 @@ function processLevel(
             // component = createComponent(item, totalProcessed, parentRotation);
 
         } else {
-            console.log(1)
+            // console.log(1)
             // console.log(item.toString())
             // component = createMeshComponent(item, totalProcessed, parentRotation);
 
         }
+
+        // currentRotation = component.rotation;
+
+        if (currentAnimType) { // if they are a part of the animation
+
+            if (currentAnimType >= 2 && currentAnimType <= 5) { // Rotate
+
+                console.log('rot!')
+                
+
+            } else if (currentAnimType >= 6 && currentAnimType <= 8) { // Translate
+
+                console.log('tr!')
+            }
+
+        }
+
 
     }
 

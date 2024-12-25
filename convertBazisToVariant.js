@@ -2558,14 +2558,18 @@ function processLevel(
 
 
 
-        if (!currentAnimType && item.AnimType && item.Count) { // set current animation if not yet (only works for level 1)
+        if (!currentAnimType && (item.AnimType || item.AnimationType) && item.Count) { // set current animation if not yet (only works for level 1)
             // what to do with 1 and etc?
             // 1 - just a block
             // 9 - leg(wtf?)
             // 10 - handle
             // 11 - front panel
 
-            if (item.AnimType >= 2 && item.AnimType <= 5) { // Rotate
+            if ((item.AnimType >= 2 && item.AnimType <= 5)  || item.AnimationType == 1) { // Rotate
+                if (item.AnimType == 0) {
+                    item.AnimType = 2 // idk lets try 2(4), or then 3(5)
+                }
+
                 currentAnimType = item.AnimType
 
                 const newPositions = getAnimationPosition(item)
@@ -2579,7 +2583,10 @@ function processLevel(
                 const newInput = createRotateInput(inputName, doorAngle)
                 inputs.push(newInput)
 
-            } else if (item.AnimType >= 6 && item.AnimType <= 8) { // Translate (8 - Z; 6,7 - X)
+            } else if ((item.AnimType >= 6 && item.AnimType <= 8) || item.AnimationType == 2) { // Translate (8 - Z; 6,7 - X)
+                if (item.AnimType == 0) {
+                    item.AnimType = 6 // idk 
+                }
                 currentAnimType = item.AnimType
 
                 const newPositions = getAnimationPosition(item)
