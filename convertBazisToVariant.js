@@ -2156,6 +2156,81 @@ function getAnimationPosition(obj) {
     };
 }
 
+
+// mod = Model[0]
+// console.log(mod.Name)
+// console.log('---LINE:')
+// modc = mod.Contour[3]
+// console.log('---start end line:--------------')
+// console.log(modc.Pos1)
+// console.log(modc.Pos2)
+// modcDb = modc.Data.Butt
+// console.log('---KROMKA params:--------------')
+// console.log(modcDb.ElemIndex)
+// console.log(modcDb.Thickness)
+
+function findEdgePositions(contour) {
+    // Объект для хранения индексов элементов контура: какой индекс соответствует какой стороне
+    let positions = {
+        left: null,   // Будет содержать индекс левой линии
+        right: null,  // Будет содержать индекс правой линии
+        top: null,    // Будет содержать индекс верхней линии
+        bottom: null  // Будет содержать индекс нижней линии
+    };
+    let maxX = -Infinity;
+    let minX = Infinity;
+    let maxY = -Infinity;
+    let minY = Infinity;
+    // Сначала найдем максимальные и минимальные координаты
+    for (let i = 0; i < 4; i++) {
+        let line = contour[i];
+        let x1 = line.Pos1.x;
+        let x2 = line.Pos2.x;
+        let y1 = line.Pos1.y;
+        let y2 = line.Pos2.y;
+        maxX = Math.max(maxX, x1, x2);
+        minX = Math.min(minX, x1, x2);
+        maxY = Math.max(maxY, y1, y2);
+        minY = Math.min(minY, y1, y2);
+    }
+    // Теперь пройдем по всем линиям и определим их положение
+    for (let i = 0; i < 4; i++) {
+        let line = contour[i];
+        let x1 = line.Pos1.x;
+        let x2 = line.Pos2.x;
+        let y1 = line.Pos1.y;
+        let y2 = line.Pos2.y;
+        // Если x координаты совпадают - это вертикальная линия
+        if (Math.abs(x1 - x2) < 0.1) {
+            if (Math.abs(x1 - minX) < 0.1) {
+                positions.left = i;  // Это левая линия
+            }
+            if (Math.abs(x1 - maxX) < 0.1) {
+                positions.right = i; // Это правая линия
+            }
+        }
+        // Если y координаты совпадают - это горизонтальная линия
+        if (Math.abs(y1 - y2) < 0.1) {
+            if (Math.abs(y1 - minY) < 0.1) {
+                positions.bottom = i; // Это нижняя линия
+            }
+            if (Math.abs(y1 - maxY) < 0.1) {
+                positions.top = i;    // Это верхняя линия
+            }
+        }
+    }
+    return positions;
+}
+
+// // Пример использования:
+// let positions = findEdgePositions(mod.Contour);
+// console.log('Нижняя кромка находится в элементе с индексом:', positions.bottom);
+// console.log('Правая кромка находится в элементе с индексом:', positions.right);
+// console.log('Верхняя кромка находится в элементе с индексом:', positions.top);
+// console.log('Левая кромка находится в элементе с индексом:', positions.left);
+
+
+
 function createComponent(obj, index, parentRotation = null) {
     let component = {};
 
@@ -2204,34 +2279,49 @@ function createComponent(obj, index, parentRotation = null) {
     let materialGUID = getMaterialGuid(obj.Material.MaterialName, component);
 
     component.material = "s123mat://" + materialGUID
+
+    // Kromki
     let arrKromok = [0, 0, 0, 0];
     let arrKromokZ = [0, 0, 0, 0];
 
-    for (let k = 0; k < obj.Butts.Count; k++) {
-        arrKromok[obj.Butts.Butts[k].ElemIndex] = obj.Butts.Butts[k].Thickness == 0.4 ? 1 : 2;
-        arrKromokZ[obj.Butts.Butts[k].ElemIndex] = obj.Butts.Butts[k].Thickness;
-    };
+    // Определяем расположение элементов контура
+    let positions = findEdgePositions(obj.Contour);
+
+    // Обходим контур и проверяем наличие кромок
+    for (let i = 0; i < 4; i++) {
+        // Смотрим есть ли кромка в элементе
+        let butt = obj.Contour[i].Data.Butt;
+        if (butt) { // если кромка существует
+            // Определяем в какой индекс массива положить эту кромку
+            let newIndex;
+            if (i === positions.left) newIndex = 0;      // Левая кромка - первый элемент
+            else if (i === positions.top) newIndex = 1;  // Верхняя кромка - второй элемент  
+            else if (i === positions.right) newIndex = 2; // Правая кромка - третий элемент
+            else if (i === positions.bottom) newIndex = 3; // Нижняя кромка - четвертый элемент
+
+            // Записываем информацию о кромке
+            arrKromok[newIndex] = butt.Thickness == 0.4 ? 1 : 2;
+            arrKromokZ[newIndex] = butt.Thickness;
+        }
+    }
+
+
+    // for (let k = 0; k < obj.Butts.Count; k++) {
+    //     arrKromok[obj.Butts.Butts[k].ElemIndex] = obj.Butts.Butts[k].Thickness == 0.4 ? 1 : 2;
+    //     arrKromokZ[obj.Butts.Butts[k].ElemIndex] = obj.Butts.Butts[k].Thickness;
+    // };
 
     component.modifier = {
         "cut_angle1": 0.0,
         "cut_angle2": 0.0,
         "back_material": component.material,
         "edges": [{
-            "type": arrKromok[3],
+            "type": arrKromok[0],
             "material": component.material,
             "size": {
                 "x": component.size.z,
                 "y": 1000.0,
-                "z": arrKromokZ[3]
-            }
-
-        }, {
-            "type": arrKromok[2],
-            "material": component.material,
-            "size": {
-                "x": component.size.z,
-                "y": 1000.0,
-                "z": arrKromokZ[2]
+                "z": arrKromokZ[0]
             }
 
         }, {
@@ -2244,12 +2334,21 @@ function createComponent(obj, index, parentRotation = null) {
             }
 
         }, {
-            "type": arrKromok[0],
+            "type": arrKromok[2],
             "material": component.material,
             "size": {
                 "x": component.size.z,
                 "y": 1000.0,
-                "z": arrKromokZ[0]
+                "z": arrKromokZ[2]
+            }
+
+        }, {
+            "type": arrKromok[3],
+            "material": component.material,
+            "size": {
+                "x": component.size.z,
+                "y": 1000.0,
+                "z": arrKromokZ[3]
             }
 
         }],
