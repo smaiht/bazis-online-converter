@@ -2549,6 +2549,7 @@ function createMeshComponent(obj, index, parentRotation = null) {
         "z": 0.0,
         "w": 1.0
     },
+    component.eulers = quaternionToEuler(component.rotation)
     
     component.size = {
         "x": meshInfo.size.x*1000,
