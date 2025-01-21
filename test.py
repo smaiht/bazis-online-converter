@@ -215,13 +215,115 @@ print("Project attributes:")
         # print("selection attributes:")
         # # pprint (dir(selection))
 
+def explore_entity(entity):
+    # Method 1: Using dir()
+    print("Properties and methods using dir():")
+    for attr in dir(entity):
+        if not attr.startswith('_'):  # Skip internal attributes
+            try:
+                value = getattr(entity, attr)
+                print(f"{attr}: {value}")
+            except:
+                print(f"{attr}: <Unable to access>")
 
+    # Method 2: Using win32com specific methods
+    try:
+        print("\nCOM Type Information:")
+        type_info = entity._oleobj_.GetTypeInfo()
+        if type_info:
+            for i in range(type_info.GetTypeAttrCount()):
+                attr = type_info.GetTypeAttr(i)
+                print(f"Type Attribute {i}: {attr}")
+    except:
+        print("Unable to access type information")
 
-# Применяем ко всем панелям
+def explore_com_object(obj, name="", depth=0, max_depth=3, visited=None):
+    if visited is None:
+        visited = set()
+    
+    # Avoid infinite recursion by tracking visited objects
+    obj_id = id(obj)
+    if obj_id in visited or depth > max_depth:
+        return
+    visited.add(obj_id)
+    
+    indent = "  " * depth
+    print(f"{indent}📦 {name}:")
+    
+    # Skip if not a COM object
+    if not str(obj).startswith('<COMObject'):
+        print(f"{indent}Value: {obj}")
+        return
+        
+    try:
+        # Get all attributes of the COM object
+        for attr in dir(obj):
+            if attr.startswith('_'):
+                continue
+                
+            try:
+                value = getattr(obj, attr)
+                
+                # If it's another COM object, recurse
+                if str(value).startswith('<COMObject'):
+                    print(f"{indent}  🔍 {attr}:")
+                    explore_com_object(value, attr, depth + 1, max_depth, visited)
+                else:
+                    print(f"{indent}  {attr}: {value}")
+            except Exception as e:
+                print(f"{indent}  ⚠️ {attr}: Error accessing ({str(e)})")
+                
+    except Exception as e:
+        print(f"{indent}⚠️ Error exploring object: {str(e)}")
+
+# Usage in your code:
 for entity in project.Entities:
-    print(f"{entity.name}, locaked? - {entity.locked}, locks? - {entity.locks}")
-    print(entity.reportAsPart)
-    print(entity.entityClass)
+
+    entity.locked = False
+    print(1)
+    break
+    
+    base_x = entity.dimensions.x
+    base_y = entity.dimensions.y 
+    base_z = entity.dimensions.z
+    
+    target_width = entity.width
+    target_height = entity.length
+    target_depth = entity.depth
+    print(f"\nАнализ детали {entity.name}:")
+    print(f"Базовые размеры (x,y,z): {base_x}, {base_y}, {base_z}")
+    print(f"Целевые размеры (w,h,d): {target_width}, {target_height}, {target_depth}")
+
+    
+    print(f"\nExploring entity of class: {entity.entityClass}")
+    explore_entity(entity)
+
+
+    # Исследуем интересующие нас объекты
+    print("\n=== Investigating boundingBox ===")
+    explore_com_object(entity.boundingBox, "boundingBox")
+    
+    print("\n=== Investigating center ===")
+    explore_com_object(entity.center, "center")
+    
+    print("\n=== Investigating dimensions ===")
+    explore_com_object(entity.dimensions, "dimensions")
+    
+    print("\n=== Investigating position ===")
+    explore_com_object(entity.position, "position")
+    
+    print("\n=== Investigating rotation ===")
+    explore_com_object(entity.rotation, "rotation")
+    
+    print("\n=== Investigating material ===")
+    explore_com_object(entity.material, "material")
+
+
+
+
+    # print(f"{entity.name}, locaked? - {entity.locked}, locks? - {entity.locks}")
+    # print(entity.reportAsPart)
+    # print(entity.entityClass)
 
     # if hasattr(entity, 'dimensions'):
     #     # entity.rotate(RAD_90, 0, RAD_90)

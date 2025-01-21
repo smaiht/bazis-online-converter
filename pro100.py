@@ -150,8 +150,14 @@ def ungroup_all(project):
         selection.clear()
         
         for entity in project.Entities:
+
+            # old lines
             # TODO: пропускаем, но по сути можно их разлокать и рисовать ЗАГОТОВКАМИ, это неведомые наборы прямоугольников
-            if entity.entityClass == 'IGroupEntity' and not entity.locked:
+            # if entity.entityClass == 'IGroupEntity' and not entity.locked:
+            
+            entity.locked = False # new lines
+            if entity.entityClass == 'IGroupEntity': # new lines
+
                 selection.add(entity)
                 found_groups = True
         

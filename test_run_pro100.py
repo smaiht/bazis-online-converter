@@ -179,6 +179,9 @@ def normalize_panel_rotation(entity):
     target_width = entity.width
     target_height = entity.length
     target_depth = entity.depth
+    print(f"\nАнализ детали {entity.name}:")
+    print(f"Базовые размеры (x,y,z): {base_x}, {base_y}, {base_z}")
+    print(f"Целевые размеры (w,h,d): {target_width}, {target_height}, {target_depth}")
 
     eps = 0.001  # погрешность для сравнения float
     
