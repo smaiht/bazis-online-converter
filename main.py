@@ -131,6 +131,14 @@ def is_superuser(user_id):
     
     return user_id.strip().lower() in (su.strip().lower() for su in superusers)
 
+def is_butts_enabled(user_data):
+    if "Butts" not in user_data:
+        return False
+        
+    value = str(user_data["Butts"]).lower()
+    
+    return value in ("1", "true")
+
 def manage_hasp_ini(enable_crack):
     roaming_hasp_ini = os.path.join(APPDATA_ROAMING_FOLDER_PATH, "Hasp.ini")
     
@@ -326,7 +334,7 @@ def process_folder(folder_path, pirate_mode, project_id):
     return False
 
 
-def process_folder_from_pro100(folder_path, project_id):
+def process_folder_from_pro100(folder_path, project_id, enable_butts):
     remove_previous_data()
     copy_to_script_dir(folder_path)
 
@@ -336,7 +344,7 @@ def process_folder_from_pro100(folder_path, project_id):
 
     time.sleep(15)
     
-    errors = convert_pro100(pro100_process)
+    errors = convert_pro100(pro100_process, enable_butts)
     if errors:
         log_message(errors, level="ERROR-PRO100", IdProject=project_id, tg=True)
         return False
@@ -575,8 +583,15 @@ def main():
                 shutil.move(folder_path, processing_path)
                 log_message(f"Moved folder to processing: {processing_path}")
 
+                # enable_butts
+                enable_butts = False
+                with open(os.path.join(processing_path, INPUT_DATA), "r") as f:
+                    user_data = json.load(f)
+                if is_butts_enabled(user_data):
+                    enable_butts = True
+                log_message(f"Enable butts: {enable_butts}", IdProject=folder_name)
 
-                if process_folder_from_pro100(processing_path, folder_name):
+                if process_folder_from_pro100(processing_path, folder_name, enable_butts):
                     log_message("Folder processed successfully")
 
                     insert_material_folders()

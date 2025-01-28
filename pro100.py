@@ -100,7 +100,56 @@ def create_get_input_node(input_name, y_position, order):
         "order": order
     }
 
-def create_set_material_node(component_paths, input_node_guid, y_position, order):
+def create_set_material_node_simple(component_paths, input_node_guid, y_position, order):
+    details_list = []
+    for i, path in enumerate(component_paths):
+        details_list.append({
+            "type": 0,
+            "key": chr(65 + i),  # A, B, C, etc.
+            "value": path
+        })
+
+    return {
+        "guid": new_guid(),
+        "name": "Задать материал детали",
+        "color": "#fff",
+        "position": {
+            "x": -50,
+            "y": y_position
+        },
+        "method": {
+            "name": "SetComponentsFields",
+            "arguments": [
+                {
+                    "name": "components",
+                    "value": details_list,
+                    "type": 18
+                },
+                {
+                    "name": "fields",
+                    "value": [
+                        {
+                            "type": 2,
+                            "key": "material",
+                            "value": {
+                                "node_guid": input_node_guid,
+                                "pair_key": None
+                            }
+                        }
+                    ],
+                    "type": 18
+                }
+            ],
+            "result": {
+                "name": None,
+                "value": None,
+                "type": 0
+            }
+        },
+        "order": order
+    }
+
+def create_set_material_node_ldsp(component_paths, input_node_guid, y_position, order):
     details_list = []
     for i, path in enumerate(component_paths):
         details_list.append({
@@ -253,7 +302,7 @@ def normalize_panel_rotation(entity):
 
 
 
-def main(pro100_process):
+def main(pro100_process, enable_butts):
     components = []
     inputs = []
     nodes = []
@@ -439,6 +488,15 @@ def main(pro100_process):
                 'path': "Детали",
                 'guid': str(uuid.uuid4()),
             }
+
+            if not enable_butts:
+                component["modifier"] = {
+                    "cut_angle1": 0.0,
+                    "cut_angle2": 0.0,
+                    "target_faces": None,
+                    "type": 0
+                }
+
             
             # Add material handling
             if material_name not in details:
@@ -467,12 +525,22 @@ def main(pro100_process):
             # print(get_input_node)
             
             # Create set material node
-            set_material_node = create_set_material_node(
-                details[material_name],
-                get_input_node["guid"],
-                i * 200,
-                i + 1
-            )
+            set_material_node = None
+            
+            if not enable_butts:
+                set_material_node = create_set_material_node_simple(
+                    details[material_name],
+                    get_input_node["guid"],
+                    i * 200,
+                    i + 1
+                )
+            else:
+                set_material_node = create_set_material_node_ldsp(
+                    details[material_name],
+                    get_input_node["guid"],
+                    i * 200,
+                    i + 1
+                )
             nodes.append(set_material_node)
             # print(set_material_node)
 
