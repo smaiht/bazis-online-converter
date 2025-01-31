@@ -1468,8 +1468,12 @@ function getMaterialGuid(materialName, component) {
     return materialGUID;
 }
 
-let visibleModelsKeywords = ["ручка", "труба"];
-let hiddenModelsKeywords = ["винт"];
+let visibleModelsKeywords = [
+    "ручка", "труба", "петля", "держатель", "направляющая", "ножка", "заглушка", "гайка", "подкодержател", "менсолодержател", "уголок", "планка", "рейка"
+];
+let hiddenModelsKeywords = [
+    "винт", "шкант", "шуруп", "шайба", "саморез", "втулка", "прокладка", "дюбель", "шпилька", "конфирмат", "эксцентрик", "стяжк", "футорк"
+];
 
 let components = [];
 
