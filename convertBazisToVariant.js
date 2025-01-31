@@ -2403,7 +2403,9 @@ function getMeshCacheKey(obj) {
 
     const orientation = getOrientationKey(obj);
 
-    return `${obj.Name}_${count}_${orientation}`;
+    const dims = `${Math.round(obj.GSize.x)}_${Math.round(obj.GSize.y)}_${Math.round(obj.GSize.z)}`;
+
+    return `${obj.Name}_${count}_${orientation}_${dims}`;
 }
 
 function getOrCreateMeshInfo(item, index) {
