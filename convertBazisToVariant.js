@@ -2394,11 +2394,16 @@ function getMeshCacheKey(obj) {
             {x: 0, y: 1, z: 0},
             {x: 0, y: 0, z: 1}
         ];
+
+        const signs = localDirs.map(dir => {
+            const global = obj.NToGlobal(dir);
+            return Math.sign(global.z);
+        }).join('_');
     
         return localDirs.map(dir => {
             const global = obj.NToGlobal(dir);
             return `${formatNumber(global.x)}_${formatNumber(global.y)}_${formatNumber(global.z)}`;
-        }).join('_');
+        }).join('_') + `_${signs}`;
     }
 
     const orientation = getOrientationKey(obj);
