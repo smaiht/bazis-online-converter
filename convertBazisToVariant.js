@@ -2900,10 +2900,10 @@ function processLevel(
 
 
         // Check for hidden/visible models
-        if (hiddenModelsKeywords.some(word => obj.Name.toLowerCase().includes(word.toLowerCase()))) {
+        if (hiddenModelsKeywords.some(word => item.Name.toLowerCase().includes(word.toLowerCase()))) {
             hiddenModels.push(component)
 
-        } else if (visibleModelsKeywords.some(word => obj.Name.toLowerCase().includes(word.toLowerCase()))) {
+        } else if (visibleModelsKeywords.some(word => item.Name.toLowerCase().includes(word.toLowerCase()))) {
             visibleModels.push(component)
         }
 
