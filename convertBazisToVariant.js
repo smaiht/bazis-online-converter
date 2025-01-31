@@ -1446,8 +1446,6 @@ function findMaterial(baseName, materials) {
     return bestMatch
 }
 
-"53d543a0-3af0-484a-9232-6a439fb808a9"
-
 
 let materials = new Map();
 let details2 = new Map();
@@ -1470,6 +1468,8 @@ function getMaterialGuid(materialName, component) {
     return materialGUID;
 }
 
+let visibleModelsKeywords = ["ручка", "труба"];
+let hiddenModelsKeywords = ["винт"];
 
 let components = [];
 
@@ -1481,6 +1481,11 @@ let nodes = [];
 
 let totalProcessed = 0;
 const pauseInterval = 10;
+
+
+// Furniture?
+let visibleModels = []
+let hiddenModels = []
 
 
 function quaternionToEuler(q) {
@@ -1542,6 +1547,42 @@ function newGuid() {
     });
 }
 
+function createEnumYesNoInput(inputName) {
+    return {
+        "guid": newGuid(),
+        "verbose_ru": null,
+        "name": inputName,
+        "type": 5,
+        "value": "Да",
+        "settings": {
+            "values": [
+                {
+                  "value": "Да",
+                  "verbose": null
+                },
+                {
+                  "value": "Нет",
+                  "verbose": null
+                }
+            ],
+            "display": 0,
+            "manipulator_handle_next": null,
+            "manipulator_handle_previous": null,
+            "tag": "anim",
+            "is_interactive": true,
+            "event": null,
+            "show_in_preview": false,
+            "show_in_consult": true,
+            "display_external": false
+        },
+        "is_active": true,
+        "is_hidden": false,
+        "hint": null,
+        "order": 0,
+        "related": null
+    }
+}
+
 function createRotateInput(inputName, angle) {
     return {
         "guid": newGuid(),
@@ -1567,7 +1608,7 @@ function createRotateInput(inputName, angle) {
         "is_active": true,
         "is_hidden": false,
         "hint": null,
-        "order": 0,
+        "order": 1,
         "related": null
     }
 }
@@ -1597,19 +1638,19 @@ function createTranslateInput(inputName, offset) {
         "is_active": true,
         "is_hidden": false,
         "hint": null,
-        "order": 0,
+        "order": 1,
         "related": null
     }
 }
 
-function createNodeGetInput(inputName, order) {
+function createNodeGetInput(inputName, order, x = 300, y_step = 100) {
     return {
         "guid": newGuid(),
         "name": "Получить вход",
         "color": "#7dff63",
         "position": {
-        "x": 300,
-        "y": order*100
+        "x": x,
+        "y": order*y_step
         },
         "method": {
         "name": "GetInputValue",
@@ -1822,6 +1863,65 @@ F =  newPosition.ay;
 G =  newPosition.az;
 
 `;}
+
+function createNodeSummCustom(inputGuid, order, x = -800, y_step = 100, script = "B = A == \"Да\";") {
+    return  {
+        "guid": newGuid(),
+        "name": "Сумматор",
+        "color": "#ff5e5e",
+        "position": {
+            "x": x,
+            "y": order*y_step
+        },
+        "method": {
+            "name": "SumRun",
+            "arguments": [
+                {
+                    "name": "positive_variables",
+                    "value": [
+                        {
+                            "type": 2,
+                            "key": "A",
+                            "value": {
+                                "node_guid": inputGuid,
+                                "pair_key": null
+                            }
+                        }
+                    ],
+                    "type": 18
+                },
+                {
+                    "name": "negative_variables",
+                    "value": [],
+                    "type": 18
+                },
+                {
+                    "name": "script",
+                    "value": script,
+                    "type": 19
+                }
+          ],
+          "result": {
+                "name": null,
+                "value": [
+                    {
+                        "type": 0,
+                        "key": "Σ",
+                        "value": 0
+                    },
+                    {
+                        "type": 0,
+                        "key": "B",
+                        "value": null
+                    },
+                ],
+                "type": 18
+            }
+        },
+        "order": order
+    }
+}
+
 
 function createNodeSumm(inputGuid, order, axisStart, axisEnd, component) {
     return  {
@@ -2046,6 +2146,62 @@ function createNodeSetDetailInfo(partName, partNamePath, summGuid, order) {
                                 "pair_key": "D"
                             }
                         }
+                    ],
+                    "type": 18
+                }
+            ],
+            "result": {
+                "name": null,
+                "value": null,
+                "type": 0
+            }
+        },
+        "order": 3
+    }
+}
+
+function createNodeSetDetailActivePart(component) {
+    return {
+        "type": 0,
+        "order": 0,
+        "key": component.name,
+        "value": component.path + '/' + component.name
+    }
+}
+
+function createNodeSetDetailsActive(components, summGuid, order, x = -1600, y_step = 100) {
+    const details = [];
+    for (let i = 0; i < components.length; i++) {
+        details.push(createNodeSetDetailActivePart(components[i]))
+    }
+
+    return  {
+        "guid": newGuid(),
+        "name": "Задать параметр детали",
+        "color": "#788cff",
+        "position": {
+            "x": x,
+            "y": order*y_step
+        },
+        "method": {
+            "name": "SetComponentsFields",
+            "arguments": [
+                {
+                    "name": "components",
+                    "value": details,
+                    "type": 18
+                },
+                {
+                    "name": "fields",
+                    "value": [
+                        {
+                            "type": 2,
+                            "key": "is_active",
+                            "value": {
+                                "node_guid": summGuid,
+                                "pair_key": "B"
+                            }
+                        },
                     ],
                     "type": 18
                 }
@@ -2743,6 +2899,15 @@ function processLevel(
         }
 
 
+        // Check for hidden/visible models
+        if (hiddenModelsKeywords.some(word => obj.Name.toLowerCase().includes(word.toLowerCase()))) {
+            hiddenModels.push(component)
+
+        } else if (visibleModelsKeywords.some(word => obj.Name.toLowerCase().includes(word.toLowerCase()))) {
+            visibleModels.push(component)
+        }
+
+
         components.push(component);
         currentRotation = component.rotation;
 
@@ -2809,6 +2974,36 @@ for (let i = 0; i < Model.Count; i++) {
     };
 };
 
+// show/hide models?
+if (visibleModels.length > 0) {
+    const visibleModelsInputName = 'Показать фурнитуру'
+    const visibleModelsInput = createEnumYesNoInput(visibleModelsInputName)
+    inputs.push(visibleModelsInput)
+
+    const getVisibleModelsInputNode = createNodeGetInput(visibleModelsInputName, 1, -300)
+    nodes.push(getVisibleModelsInputNode)
+    const visibleModelsSummNode = createNodeSummCustom(getVisibleModelsInputNode.guid, 1, -800)
+    nodes.push(visibleModelsSummNode)
+
+    const setComponentsActivenessNode = createNodeSetDetailsActive(visibleModels, visibleModelsSummNode.guid, 1)
+    nodes.push(setComponentsActivenessNode)
+}
+
+if (hiddenModels.length > 0) {
+    const hiddenModelsInputName = 'Показать крепежи'
+    const hiddenModelsInput = createEnumYesNoInput(hiddenModelsInputName)
+    inputs.push(hiddenModelsInput)
+
+    const getHiddenModelsInputNode = createNodeGetInput(hiddenModelsInputName, 2, -300)
+    nodes.push(getHiddenModelsInputNode)
+    const hiddenModelsSummNode = createNodeSummCustom(getHiddenModelsInputNode.guid, 2, -800)
+    nodes.push(hiddenModelsSummNode)
+
+    const setComponentsActivenessNode = createNodeSetDetailsActive(hiddenModels, hiddenModelsSummNode.guid, 2)
+    nodes.push(setComponentsActivenessNode)
+}
+//
+
 let input = {
     "guid": "",
     "verbose_ru": null,
@@ -2828,7 +3023,7 @@ let input = {
     "is_active": true,
     "is_hidden": false,
     "hint": null,
-    "order": 0,
+    "order": 2,
     "related": null
 };
 
@@ -2990,6 +3185,8 @@ colors.forEach(color => {
     nodes.push(newNodeSetLDSPMaterial);
     nodes.push(newNodeSetPartMaterial);
 });
+
+
 
 
 let project = {
