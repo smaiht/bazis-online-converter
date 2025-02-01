@@ -69,7 +69,7 @@ def get_box_faces(component):
 
 
 
-def compute_plane(face_points, tol=1e-6, decimals=3):
+def compute_plane(face_points, tol=1.0, decimals=0):
     p0, p1, p2 = face_points[0], face_points[1], face_points[2]
     v1 = p1 - p0
     v2 = p2 - p0
@@ -93,7 +93,7 @@ def compute_plane(face_points, tol=1e-6, decimals=3):
            round(normal[2], decimals), round(D, decimals))
     return key
 
-def group_faces_by_plane(components, tol=1e-6, decimals=3):
+def group_faces_by_plane(components, tol=1.0, decimals=0):
     plane_dict = {}
     for comp in components:
         comp["faces"] = {}
@@ -115,7 +115,7 @@ def group_faces_by_plane(components, tol=1e-6, decimals=3):
 
 
 
-def check_rectangles_intersection(points1, points2, tolerance=1e-6):
+def check_rectangles_intersection(points1, points2, tolerance=-32.0):
     # Находим нормаль к плоскости
     v1 = points1[1] - points1[0]
     v2 = points1[3] - points1[0]
@@ -227,7 +227,7 @@ if __name__ == "__main__":
     # butts test
         
 
-        
+
 
 
 
