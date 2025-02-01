@@ -115,7 +115,7 @@ def group_faces_by_plane(components, tol=1.0, decimals=0):
 
 
 # ignore panel overlaps if they are smaller than 32mm on any dimension
-def check_rectangles_intersection(points1, points2, tolerance=-32.0):
+def check_rectangles_intersection(points1, points2, tolerance=-15.0):
     # Находим нормаль к плоскости
     v1 = points1[1] - points1[0]
     v2 = points1[3] - points1[0]
