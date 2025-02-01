@@ -171,24 +171,24 @@ def mark_closed_faces(components, planes):
         # Обновляем edges на основе результатов анализа
         if 'modifier' in comp and 'edges' in comp['modifier']:
             edges = comp['modifier']['edges']
-            
-            # left face -> edge[0]
-            if comp['faces'].get('left', {}).get('closed', False):
+                
+            # right face -> edge[0]
+            if not comp['faces'].get('right', {}).get('closed', False):
                 edges[0]['type'] = 2
                 edges[0]['size']['z'] = 2
                 
             # top face -> edge[1]
-            if comp['faces'].get('top', {}).get('closed', False):
+            if not comp['faces'].get('top', {}).get('closed', False):
                 edges[1]['type'] = 2
                 edges[1]['size']['z'] = 2
-                
-            # right face -> edge[2]
-            if comp['faces'].get('right', {}).get('closed', False):
+            
+            # left face -> edge[2]
+            if not comp['faces'].get('left', {}).get('closed', False):
                 edges[2]['type'] = 2
                 edges[2]['size']['z'] = 2
                 
             # bottom face -> edge[3]
-            if comp['faces'].get('bottom', {}).get('closed', False):
+            if not comp['faces'].get('bottom', {}).get('closed', False):
                 edges[3]['type'] = 2
                 edges[3]['size']['z'] = 2
 
@@ -208,99 +208,122 @@ if __name__ == "__main__":
 
 
 
-    # Пример: одна деталь с заданными параметрами
-    component = {
-        "position": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
-        },
-        "rotation": {
-            "x": 0.09101049,
-            "y": -0.57181,
-            "z": 0.524406433,
-            "w": 0.6242983
-        },
-        "size": {
-            "x": 600.0,
-            "y": 1000.0,
-            "z": 20.0
-        },
-    }
+    # butts test
+    import json
 
-    faces_coords = get_box_faces(component)
-    print(faces_coords)
+    # Читаем файл проекта
+    with open('123.s123proj', 'r', encoding='utf-8') as f:
+        project = json.load(f)
 
-    # Выводим координаты каждой из 4-х точек для всех 6 граней
-    for face, points in faces_coords.items():
-        print(f"Грань '{face}':")
-        for i, pt in enumerate(points):
-            print(f"  Точка {i+1}: {np.round(pt, 3)}")
-        print()
+    # Достаем компоненты
+    components = project['components']
+
+    # Тестируем нашу функцию
+    components = analyze_butts(components)
+
+    # Если нужно сохранить обратно
+    with open('result123.s123proj', 'w', encoding='utf-8') as f:
+        json.dump(project, f, indent=4)
+    # butts test
+        
+
+        
 
 
 
+    # # Пример: одна деталь с заданными параметрами
+    # component = {
+    #     "position": {
+    #         "x": 0.0,
+    #         "y": 0.0,
+    #         "z": 0.0
+    #     },
+    #     "rotation": {
+    #         "x": 0.09101049,
+    #         "y": -0.57181,
+    #         "z": 0.524406433,
+    #         "w": 0.6242983
+    #     },
+    #     "size": {
+    #         "x": 600.0,
+    #         "y": 1000.0,
+    #         "z": 20.0
+    #     },
+    # }
 
+    # faces_coords = get_box_faces(component)
+    # print(faces_coords)
 
-    # Пример массива компонентов (здесь можно добавить больше деталей)
-    components = [
-        {     
-                "position": {
-            "x": 120.424683,
-            "y": -41.7468071,
-            "z": -165.400665
-        },
-        "rotation": {
-            "x": 0.3061863,
-            "y": 0.1767767,
-            "z": 0.176776648,
-            "w": 0.918558657
-        },
-        "size": {
-            "x": 500.0,
-            "y": 500.0,
-            "z": 100.0
-        },
-        },
-
-        {     
-        "position": {
-            "x": -119.975929,
-            "y": 0.0,
-            "z": 101.225952
-        },
-        "rotation": {
-            "x": 0.3061863,
-            "y": 0.1767767,
-            "z": 0.176776648,
-            "w": 0.918558657
-        },
-        "size": {
-            "x": 600.0,
-            "y": 800.0,
-            "z": 50.0
-        },
-        }
-    ]
-
-
-    # Группируем грани всех компонентов по плоскостям
-    planes = group_faces_by_plane(components)
-
-    # Выводим полученный объект
-    print("Группировка граней по плоскостям:")
-    for plane_key, faces in planes.items():
-        print(f"Плоскость {plane_key}:")
-        for pts in faces:
-            pts_str = ", ".join([str(np.round(pt,3)) for pt in pts])
-            print(f"  грань: {pts_str}")
-        print()
+    # # Выводим координаты каждой из 4-х точек для всех 6 граней
+    # for face, points in faces_coords.items():
+    #     print(f"Грань '{face}':")
+    #     for i, pt in enumerate(points):
+    #         print(f"  Точка {i+1}: {np.round(pt, 3)}")
+    #     print()
 
 
 
-    mark_closed_faces(components, planes)
 
-    pprint(components)
+
+    # # Пример массива компонентов (здесь можно добавить больше деталей)
+    # components = [
+    #     {     
+    #             "position": {
+    #         "x": 120.424683,
+    #         "y": -41.7468071,
+    #         "z": -165.400665
+    #     },
+    #     "rotation": {
+    #         "x": 0.3061863,
+    #         "y": 0.1767767,
+    #         "z": 0.176776648,
+    #         "w": 0.918558657
+    #     },
+    #     "size": {
+    #         "x": 500.0,
+    #         "y": 500.0,
+    #         "z": 100.0
+    #     },
+    #     },
+
+    #     {     
+    #     "position": {
+    #         "x": -119.975929,
+    #         "y": 0.0,
+    #         "z": 101.225952
+    #     },
+    #     "rotation": {
+    #         "x": 0.3061863,
+    #         "y": 0.1767767,
+    #         "z": 0.176776648,
+    #         "w": 0.918558657
+    #     },
+    #     "size": {
+    #         "x": 600.0,
+    #         "y": 800.0,
+    #         "z": 50.0
+    #     },
+    #     }
+    # ]
+
+
+    # # Группируем грани всех компонентов по плоскостям
+    # planes = group_faces_by_plane(components)
+
+    # # Выводим полученный объект
+    # print("Группировка граней по плоскостям:")
+    # for plane_key, faces in planes.items():
+    #     print(f"Плоскость {plane_key}:")
+    #     for pts in faces:
+    #         pts_str = ", ".join([str(np.round(pt,3)) for pt in pts])
+    #         print(f"  грань: {pts_str}")
+    #     print()
+
+
+
+    # mark_closed_faces(components, planes)
+
+    # pprint(components)
 
 
 
