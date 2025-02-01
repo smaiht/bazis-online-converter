@@ -166,7 +166,7 @@ def mark_closed_faces(components, planes):
                     
             # Если есть хотя бы больше чем одно пересечение, помечаем грань как закрытую
             comp['faces'][face_name]['closed'] = intersections > 1
-            comp['faces'][face_name]['plane_key'] = None
+            # comp['faces'][face_name]['plane_key'] = None
 
         # Обновляем edges на основе результатов анализа
         if 'modifier' in comp and 'edges' in comp['modifier']:
@@ -191,6 +191,8 @@ def mark_closed_faces(components, planes):
             if comp['faces'].get('bottom', {}).get('closed', False):
                 edges[3]['type'] = 2
                 edges[3]['size']['z'] = 2
+
+        comp['faces'] = None
 
 
 def analyze_butts(components):
