@@ -12,6 +12,9 @@ import time
 import subprocess
 import math
 
+from variant_add_butts import analyze_butts
+
+
 def new_guid():
     return str(uuid.uuid4())
 
@@ -509,7 +512,8 @@ def main(pro100_process, enable_butts):
             components.append(component)
 
 
-
+        if enable_butts:
+            components = analyze_butts(components)
 
         # Create material inputs and nodes
         for i, (material_name, material_guid) in enumerate(materials.items()):
