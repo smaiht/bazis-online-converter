@@ -2785,7 +2785,12 @@ function generateUniqueInputName(baseName, type) {
 }
 
 
-
+function isBlock(item) {
+    return (
+        item.toString() === '[object TFurnBlock]'
+        || item.toString() === '[object TLayer3D]'
+    )
+}
 
 let nodesCount = 1
 
@@ -2812,10 +2817,7 @@ function processLevel(
     let currentRotation = parentRotation;
 
     // BLOCK
-    if (
-        item.toString() === '[object TFurnBlock]' ||
-        item.toString() === '[object TLayer3D]'
-    ) {
+    if (isBlock(item)) {
         let localRotation = {
             x: item.Rotation.ImagPart.x,
             y: -item.Rotation.ImagPart.y,
@@ -2960,7 +2962,10 @@ function processLevel(
 
 
 
-    if (item.toString() === '[object TFurnBlock]' && item.Count) {
+    if (
+        isBlock(item)
+        && item.Count
+    ) {
         for (let i = 0; i < item.Count; i++) {
             processLevel(item[i], depth + 1, currentRotation, 
                 currentAnimType, initialPoint, axisStart, axisEnd, inputName);
