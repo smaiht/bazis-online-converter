@@ -2345,7 +2345,14 @@ function findEdgePositions(contour) {
     for (let i = 0; i < 4; i++) {
         let line = contour[i];
         
-        if (!line?.Pos1?.x || !line?.Pos2?.x || !line?.Pos1?.y || !line?.Pos2?.y) {
+        if (
+            !line
+            || !line.Pos1
+            || !line.Pos1.x
+            || !line.Pos1.y
+            || !line.Pos2.x
+            || !line.Pos2.y
+        ) {
             continue;
         }
         
@@ -2362,7 +2369,14 @@ function findEdgePositions(contour) {
     for (let i = 0; i < 4; i++) {
         let line = contour[i];
         
-        if (!line?.Pos1?.x || !line?.Pos2?.x || !line?.Pos1?.y || !line?.Pos2?.y) {
+        if (
+            !line
+            || !line.Pos1
+            || !line.Pos1.x
+            || !line.Pos1.y
+            || !line.Pos2.x
+            || !line.Pos2.y
+        ) {
             continue;
         }
         
