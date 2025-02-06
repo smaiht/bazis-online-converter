@@ -1469,7 +1469,7 @@ function getMaterialGuid(materialName, component) {
 }
 
 let visibleModelsKeywords = [
-    "ручка", "труба", "петля", "держатель", "направляющая", "ножка", "заглушка", "гайка", "подкодержател", "менсолодержател", "уголок", "планка", "рейка"
+    "ручка", "труба", "петля", "держатель", "направляющая", "ножка", "заглушка", "гайка", "полкодержател", "менсолодержател", "уголок", "планка", "рейка"
 ];
 let hiddenModelsKeywords = [
     "винт", "шкант", "шуруп", "шайба", "саморез", "втулка", "прокладка", "дюбель", "шпилька", "конфирмат", "эксцентрик", "стяжк", "футорк"
@@ -2812,7 +2812,10 @@ function processLevel(
     let currentRotation = parentRotation;
 
     // BLOCK
-    if (item.toString() === '[object TFurnBlock]') {
+    if (
+        item.toString() === '[object TFurnBlock]' ||
+        item.toString() === '[object TLayer3D]'
+    ) {
         let localRotation = {
             x: item.Rotation.ImagPart.x,
             y: -item.Rotation.ImagPart.y,
