@@ -2344,6 +2344,11 @@ function findEdgePositions(contour) {
     // Сначала найдем максимальные и минимальные координаты
     for (let i = 0; i < 4; i++) {
         let line = contour[i];
+        
+        if (!line?.Pos1?.x || !line?.Pos2?.x || !line?.Pos1?.y || !line?.Pos2?.y) {
+            continue;
+        }
+        
         let x1 = line.Pos1.x;
         let x2 = line.Pos2.x;
         let y1 = line.Pos1.y;
@@ -2356,6 +2361,11 @@ function findEdgePositions(contour) {
     // Теперь пройдем по всем линиям и определим их положение
     for (let i = 0; i < 4; i++) {
         let line = contour[i];
+        
+        if (!line?.Pos1?.x || !line?.Pos2?.x || !line?.Pos1?.y || !line?.Pos2?.y) {
+            continue;
+        }
+        
         let x1 = line.Pos1.x;
         let x2 = line.Pos2.x;
         let y1 = line.Pos1.y;
