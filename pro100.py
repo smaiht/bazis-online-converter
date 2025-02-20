@@ -408,7 +408,11 @@ def main(pro100_process, enable_butts):
             quaternion = final_rotation.as_quat()
 
 
-            material_name = entity.material.textureName
+
+            try:
+                material_name = entity.material.textureName
+            except (AttributeError, TypeError):
+                material_name = ''
             # print(material_name)
 
             # Create component

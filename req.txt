@@ -9,3 +9,4 @@ keyboard
 numpy
 scipy
 pyassimp
+setuptools

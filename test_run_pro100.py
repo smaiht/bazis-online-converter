@@ -283,6 +283,8 @@ def main():
             if entity.locked == 1: # skip unidentified parts
                 continue
 
+
+
             # Deal with rotations
             original_euler = Rot3D(
                 entity.rotation.x,
@@ -353,7 +355,12 @@ def main():
             quaternion = final_rotation.as_quat()
 
 
-            material_name = entity.material.textureName
+
+            try:
+                material_name = entity.material.textureName
+            except (AttributeError, TypeError):
+                material_name = ''
+
             # print(material_name)
 
             # Create component
