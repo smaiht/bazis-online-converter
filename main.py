@@ -593,6 +593,7 @@ def main():
                     log_message("Material Folders IDs inserted successfully", IdProject=folder_name)
 
                     any_models_there = convert_all_obj_to_fbx(folder_name)
+                    merged_models_count = merge_panel_and_butts_fbx(folder_name)
 
                     log_message("Trying send to .NET ...")
                     # Send to dotnet
