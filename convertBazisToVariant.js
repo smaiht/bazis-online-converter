@@ -1563,6 +1563,48 @@ function applyButts(panel) {
     return buttsInfo;
 }
 
+function generateTextureCoords(v1m, v2m, v3m, isPanelSurface) {
+    // Определяем нормаль треугольника
+    let nx = (v2m[1] - v1m[1]) * (v3m[2] - v1m[2]) - (v2m[2] - v1m[2]) * (v3m[1] - v1m[1]);
+    let ny = (v2m[2] - v1m[2]) * (v3m[0] - v1m[0]) - (v2m[0] - v1m[0]) * (v3m[2] - v1m[2]);
+    let nz = (v2m[0] - v1m[0]) * (v3m[1] - v1m[1]) - (v2m[1] - v1m[1]) * (v3m[0] - v1m[0]);
+    
+    // Нормализуем
+    let len = Math.sqrt(nx*nx + ny*ny + nz*nz);
+    nx /= len;
+    ny /= len;
+    nz /= len;
+    
+    // Берем абсолютные значения нормали
+    let anx = Math.abs(nx);
+    let any = Math.abs(ny);
+    let anz = Math.abs(nz);
+    
+    // Определяем, какая проекция лучше всего
+    if (anx >= any && anx >= anz) {
+        // Проекция YZ (нормаль ближе к X)
+        return [
+            [(v1m[1] - minY) / (maxY - minY), (v1m[2] - minZ) / (maxZ - minZ)],
+            [(v2m[1] - minY) / (maxY - minY), (v2m[2] - minZ) / (maxZ - minZ)],
+            [(v3m[1] - minY) / (maxY - minY), (v3m[2] - minZ) / (maxZ - minZ)]
+        ];
+    } else if (any >= anx && any >= anz) {
+        // Проекция XZ (нормаль ближе к Y)
+        return [
+            [(v1m[0] - minX) / (maxX - minX), (v1m[2] - minZ) / (maxZ - minZ)],
+            [(v2m[0] - minX) / (maxX - minX), (v2m[2] - minZ) / (maxZ - minZ)],
+            [(v3m[0] - minX) / (maxX - minX), (v3m[2] - minZ) / (maxZ - minZ)]
+        ];
+    } else {
+        // Проекция XY (нормаль ближе к Z)
+        return [
+            [(v1m[0] - minX) / (maxX - minX), (v1m[1] - minY) / (maxY - minY)],
+            [(v2m[0] - minX) / (maxX - minX), (v2m[1] - minY) / (maxY - minY)],
+            [(v3m[0] - minX) / (maxX - minX), (v3m[1] - minY) / (maxY - minY)]
+        ];
+    }
+}
+
 function exportPanelAndButts(panel, index) {
     // Массивы для панели
     let panelVertices = [];
@@ -1609,18 +1651,24 @@ function exportPanelAndButts(panel, index) {
                         maxZ = Math.max(maxZ, v[2]);
                     });
     
+                    // Получаем текстурные координаты
+                    let texCoords = generateTextureCoords(v1m, v2m, v3m, isPanelSurface);
+
                     if (isPanelSurface) {
-                        // Генерируем UV-координаты для панели:
-                        // Используем координаты X и Y для плоских панелей
-                        // Масштабируем к размеру 0-1
-                        let tx1 = (v1m[0] - minX) / (maxX - minX);
-                        let ty1 = (v1m[1] - minY) / (maxY - minY);
-                        let tx2 = (v2m[0] - minX) / (maxX - minX);
-                        let ty2 = (v2m[1] - minY) / (maxY - minY);
-                        let tx3 = (v3m[0] - minX) / (maxX - minX);
-                        let ty3 = (v3m[1] - minY) / (maxY - minY);
+                        // // Генерируем UV-координаты для панели:
+                        // // Используем координаты X и Y для плоских панелей
+                        // // Масштабируем к размеру 0-1
+                        // let tx1 = (v1m[0] - minX) / (maxX - minX);
+                        // let ty1 = (v1m[1] - minY) / (maxY - minY);
+                        // let tx2 = (v2m[0] - minX) / (maxX - minX);
+                        // let ty2 = (v2m[1] - minY) / (maxY - minY);
+                        // let tx3 = (v3m[0] - minX) / (maxX - minX);
+                        // let ty3 = (v3m[1] - minY) / (maxY - minY);
                         
-                        panelTexCoords.push([tx1, ty1], [tx2, ty2], [tx3, ty3]);
+                        // panelTexCoords.push([tx1, ty1], [tx2, ty2], [tx3, ty3]);
+
+
+                        panelTexCoords.push(...texCoords);
 
                         // Сохраняем в массивы панели
                         panelVertices.push(v1m, v2m, v3m);
@@ -1630,16 +1678,18 @@ function exportPanelAndButts(panel, index) {
                         panelTotalVertices += 3;
 
                     } else {
-                        // Для кромок используем другую проекцию
-                        // Проецируем на развёртку по длине кромки
-                        let tx1 = (v1m[0] - minX) / (maxX - minX);
-                        let ty1 = (v1m[2] - minZ) / (maxZ - minZ); // Используем Z вместо Y
-                        let tx2 = (v2m[0] - minX) / (maxX - minX);
-                        let ty2 = (v2m[2] - minZ) / (maxZ - minZ);
-                        let tx3 = (v3m[0] - minX) / (maxX - minX);
-                        let ty3 = (v3m[2] - minZ) / (maxZ - minZ);
+                        // // Для кромок используем другую проекцию
+                        // // Проецируем на развёртку по длине кромки
+                        // let tx1 = (v1m[0] - minX) / (maxX - minX);
+                        // let ty1 = (v1m[2] - minZ) / (maxZ - minZ); // Используем Z вместо Y
+                        // let tx2 = (v2m[0] - minX) / (maxX - minX);
+                        // let ty2 = (v2m[2] - minZ) / (maxZ - minZ);
+                        // let tx3 = (v3m[0] - minX) / (maxX - minX);
+                        // let ty3 = (v3m[2] - minZ) / (maxZ - minZ);
                         
-                        buttTexCoords.push([tx1, ty1], [tx2, ty2], [tx3, ty3]);
+                        // buttTexCoords.push([tx1, ty1], [tx2, ty2], [tx3, ty3]);
+
+                        buttTexCoords.push(...texCoords);
                         
                         // Сохраняем в массивы кромок
                         buttVertices.push(v1m, v2m, v3m);
