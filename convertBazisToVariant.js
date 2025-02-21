@@ -1597,29 +1597,51 @@ function exportPanelAndButts(panel, index) {
         let any = Math.abs(ny);
         let anz = Math.abs(nz);
         
-        // Определяем, какая проекция лучше всего
         if (anx >= any && anx >= anz) {
             // Проекция YZ (нормаль ближе к X)
             return [
-                [(v1m[1] - minY) / (maxY - minY), (v1m[2] - minZ) / (maxZ - minZ)],
-                [(v2m[1] - minY) / (maxY - minY), (v2m[2] - minZ) / (maxZ - minZ)],
-                [(v3m[1] - minY) / (maxY - minY), (v3m[2] - minZ) / (maxZ - minZ)]
+                [v1m[1], v1m[2]], // Используем метры напрямую
+                [v2m[1], v2m[2]],
+                [v3m[1], v3m[2]]
             ];
         } else if (any >= anx && any >= anz) {
             // Проекция XZ (нормаль ближе к Y)
             return [
-                [(v1m[0] - minX) / (maxX - minX), (v1m[2] - minZ) / (maxZ - minZ)],
-                [(v2m[0] - minX) / (maxX - minX), (v2m[2] - minZ) / (maxZ - minZ)],
-                [(v3m[0] - minX) / (maxX - minX), (v3m[2] - minZ) / (maxZ - minZ)]
+                [v1m[0], v1m[2]],
+                [v2m[0], v2m[2]],
+                [v3m[0], v3m[2]]
             ];
         } else {
             // Проекция XY (нормаль ближе к Z)
             return [
-                [(v1m[0] - minX) / (maxX - minX), (v1m[1] - minY) / (maxY - minY)],
-                [(v2m[0] - minX) / (maxX - minX), (v2m[1] - minY) / (maxY - minY)],
-                [(v3m[0] - minX) / (maxX - minX), (v3m[1] - minY) / (maxY - minY)]
+                [v1m[0], v1m[1]],
+                [v2m[0], v2m[1]],
+                [v3m[0], v3m[1]]
             ];
         }
+        // // Определяем, какая проекция лучше всего
+        // if (anx >= any && anx >= anz) {
+        //     // Проекция YZ (нормаль ближе к X)
+        //     return [
+        //         [(v1m[1] - minY) / (maxY - minY), (v1m[2] - minZ) / (maxZ - minZ)],
+        //         [(v2m[1] - minY) / (maxY - minY), (v2m[2] - minZ) / (maxZ - minZ)],
+        //         [(v3m[1] - minY) / (maxY - minY), (v3m[2] - minZ) / (maxZ - minZ)]
+        //     ];
+        // } else if (any >= anx && any >= anz) {
+        //     // Проекция XZ (нормаль ближе к Y)
+        //     return [
+        //         [(v1m[0] - minX) / (maxX - minX), (v1m[2] - minZ) / (maxZ - minZ)],
+        //         [(v2m[0] - minX) / (maxX - minX), (v2m[2] - minZ) / (maxZ - minZ)],
+        //         [(v3m[0] - minX) / (maxX - minX), (v3m[2] - minZ) / (maxZ - minZ)]
+        //     ];
+        // } else {
+        //     // Проекция XY (нормаль ближе к Z)
+        //     return [
+        //         [(v1m[0] - minX) / (maxX - minX), (v1m[1] - minY) / (maxY - minY)],
+        //         [(v2m[0] - minX) / (maxX - minX), (v2m[1] - minY) / (maxY - minY)],
+        //         [(v3m[0] - minX) / (maxX - minX), (v3m[1] - minY) / (maxY - minY)]
+        //     ];
+        // }
     }
 
     function exportObject(obj) {
