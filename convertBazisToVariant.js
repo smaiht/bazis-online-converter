@@ -1511,7 +1511,7 @@ function getProfile(panelThickness, buttThickness) {
     
     let filePath = `butts/${profileName}.frw`;
     if (!system.fileExists(filePath)) {
-        filePath = "butts/default.frw";
+        filePath = "butts/16_2.frw";
     }
     
     let newProfile = NewContour();
@@ -2648,7 +2648,7 @@ function createSpecialComponent(obj, index, parentRotation = null) {
     component.user_data = buttsInfo;
     // let buttsMaterial // TODO:
 
-    exportPanelAndButts(panel, index)
+    exportPanelAndButts(obj, index)
 
 
     component.modifier = {
@@ -3180,9 +3180,9 @@ function processLevel(
 
         if (item.toString() == '[object TFurnPanel]') {
             if (item.IsContourRectangle) {
-                component = createSpecialComponent(item, totalProcessed, parentRotation);
-            } else {
                 component = createComponent(item, totalProcessed, parentRotation);
+            } else {
+                component = createSpecialComponent(item, totalProcessed, parentRotation);
             }
 
         } else {

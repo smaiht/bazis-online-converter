@@ -57,8 +57,8 @@ ICON_SIZE = 512
 TIMEOUT = 240
 
 
-first = (os.path.join(SCRIPT_DIR, "panel.fbx"))
-second = (os.path.join(SCRIPT_DIR, "butts.fbx"))
-out = (os.path.join(SCRIPT_DIR, "out.fbx"))
+first = (os.path.join(SCRIPT_DIR, "panel_123.fbx"))
+second = (os.path.join(SCRIPT_DIR, "butts_123.fbx"))
+out = (os.path.join(SCRIPT_DIR, "/merged_panel_123.fbx"))
 
-subprocess.run(["libs\\aspose\\merge_to_fbx.exe", first, second, out], check=True)
+subprocess.run(["C:\\aspose\\merge_to_fbx.exe", first, second, out], check=True)
