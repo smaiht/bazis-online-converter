@@ -1563,48 +1563,6 @@ function applyButts(panel) {
     return buttsInfo;
 }
 
-function generateTextureCoords(v1m, v2m, v3m, isPanelSurface) {
-    // Определяем нормаль треугольника
-    let nx = (v2m[1] - v1m[1]) * (v3m[2] - v1m[2]) - (v2m[2] - v1m[2]) * (v3m[1] - v1m[1]);
-    let ny = (v2m[2] - v1m[2]) * (v3m[0] - v1m[0]) - (v2m[0] - v1m[0]) * (v3m[2] - v1m[2]);
-    let nz = (v2m[0] - v1m[0]) * (v3m[1] - v1m[1]) - (v2m[1] - v1m[1]) * (v3m[0] - v1m[0]);
-    
-    // Нормализуем
-    let len = Math.sqrt(nx*nx + ny*ny + nz*nz);
-    nx /= len;
-    ny /= len;
-    nz /= len;
-    
-    // Берем абсолютные значения нормали
-    let anx = Math.abs(nx);
-    let any = Math.abs(ny);
-    let anz = Math.abs(nz);
-    
-    // Определяем, какая проекция лучше всего
-    if (anx >= any && anx >= anz) {
-        // Проекция YZ (нормаль ближе к X)
-        return [
-            [(v1m[1] - minY) / (maxY - minY), (v1m[2] - minZ) / (maxZ - minZ)],
-            [(v2m[1] - minY) / (maxY - minY), (v2m[2] - minZ) / (maxZ - minZ)],
-            [(v3m[1] - minY) / (maxY - minY), (v3m[2] - minZ) / (maxZ - minZ)]
-        ];
-    } else if (any >= anx && any >= anz) {
-        // Проекция XZ (нормаль ближе к Y)
-        return [
-            [(v1m[0] - minX) / (maxX - minX), (v1m[2] - minZ) / (maxZ - minZ)],
-            [(v2m[0] - minX) / (maxX - minX), (v2m[2] - minZ) / (maxZ - minZ)],
-            [(v3m[0] - minX) / (maxX - minX), (v3m[2] - minZ) / (maxZ - minZ)]
-        ];
-    } else {
-        // Проекция XY (нормаль ближе к Z)
-        return [
-            [(v1m[0] - minX) / (maxX - minX), (v1m[1] - minY) / (maxY - minY)],
-            [(v2m[0] - minX) / (maxX - minX), (v2m[1] - minY) / (maxY - minY)],
-            [(v3m[0] - minX) / (maxX - minX), (v3m[1] - minY) / (maxY - minY)]
-        ];
-    }
-}
-
 function exportPanelAndButts(panel, index) {
     // Массивы для панели
     let panelVertices = [];
@@ -1621,6 +1579,49 @@ function exportPanelAndButts(panel, index) {
     let minX = Infinity, minY = Infinity, minZ = Infinity;
     let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
     
+    
+    function generateTextureCoords(v1m, v2m, v3m, isPanelSurface) {
+        // Определяем нормаль треугольника
+        let nx = (v2m[1] - v1m[1]) * (v3m[2] - v1m[2]) - (v2m[2] - v1m[2]) * (v3m[1] - v1m[1]);
+        let ny = (v2m[2] - v1m[2]) * (v3m[0] - v1m[0]) - (v2m[0] - v1m[0]) * (v3m[2] - v1m[2]);
+        let nz = (v2m[0] - v1m[0]) * (v3m[1] - v1m[1]) - (v2m[1] - v1m[1]) * (v3m[0] - v1m[0]);
+        
+        // Нормализуем
+        let len = Math.sqrt(nx*nx + ny*ny + nz*nz);
+        nx /= len;
+        ny /= len;
+        nz /= len;
+        
+        // Берем абсолютные значения нормали
+        let anx = Math.abs(nx);
+        let any = Math.abs(ny);
+        let anz = Math.abs(nz);
+        
+        // Определяем, какая проекция лучше всего
+        if (anx >= any && anx >= anz) {
+            // Проекция YZ (нормаль ближе к X)
+            return [
+                [(v1m[1] - minY) / (maxY - minY), (v1m[2] - minZ) / (maxZ - minZ)],
+                [(v2m[1] - minY) / (maxY - minY), (v2m[2] - minZ) / (maxZ - minZ)],
+                [(v3m[1] - minY) / (maxY - minY), (v3m[2] - minZ) / (maxZ - minZ)]
+            ];
+        } else if (any >= anx && any >= anz) {
+            // Проекция XZ (нормаль ближе к Y)
+            return [
+                [(v1m[0] - minX) / (maxX - minX), (v1m[2] - minZ) / (maxZ - minZ)],
+                [(v2m[0] - minX) / (maxX - minX), (v2m[2] - minZ) / (maxZ - minZ)],
+                [(v3m[0] - minX) / (maxX - minX), (v3m[2] - minZ) / (maxZ - minZ)]
+            ];
+        } else {
+            // Проекция XY (нормаль ближе к Z)
+            return [
+                [(v1m[0] - minX) / (maxX - minX), (v1m[1] - minY) / (maxY - minY)],
+                [(v2m[0] - minX) / (maxX - minX), (v2m[1] - minY) / (maxY - minY)],
+                [(v3m[0] - minX) / (maxX - minX), (v3m[1] - minY) / (maxY - minY)]
+            ];
+        }
+    }
+
     function exportObject(obj) {
         if (obj.TriListsCount) {
             for(let i = 0; i < obj.TriListsCount; i++) {
