@@ -1635,104 +1635,44 @@ function exportPanelAndButts(panel, index) {
         panelProjection = 'YZ';
     }
     
-
-    
-    // Функция для генерации текстурных координат с учетом проекции панели
-    function generateTextureCoords(v1m, v2m, v3m, isFace) {
-        if (isFace) {
-            // Для плоскости панели используем фиксированную проекцию
-            if (panelProjection === 'XY') {
-                return [
-                    [v1m[0], v1m[1]],
-                    [v2m[0], v2m[1]],
-                    [v3m[0], v3m[1]]
-                ];
-            } else if (panelProjection === 'XZ') {
-                return [
-                    [v1m[0], v1m[2]],
-                    [v2m[0], v2m[2]],
-                    [v3m[0], v3m[2]]
-                ];
-            } else { // YZ
-                return [
-                    [v1m[1], v1m[2]],
-                    [v2m[1], v2m[2]],
-                    [v3m[1], v3m[2]]
-                ];
-            }
+    function generateTextureCoords(v1m, v2m, v3m, isPanelSurface) {
+        // Определяем нормаль треугольника
+        let nx = (v2m[1] - v1m[1]) * (v3m[2] - v1m[2]) - (v2m[2] - v1m[2]) * (v3m[1] - v1m[1]);
+        let ny = (v2m[2] - v1m[2]) * (v3m[0] - v1m[0]) - (v2m[0] - v1m[0]) * (v3m[2] - v1m[2]);
+        let nz = (v2m[0] - v1m[0]) * (v3m[1] - v1m[1]) - (v2m[1] - v1m[1]) * (v3m[0] - v1m[0]);
+        
+        // Нормализуем
+        let len = Math.sqrt(nx*nx + ny*ny + nz*nz);
+        nx /= len;
+        ny /= len;
+        nz /= len;
+        
+        // Берем абсолютные значения нормали
+        let anx = Math.abs(nx);
+        let any = Math.abs(ny);
+        let anz = Math.abs(nz);
+        
+        if (anx >= any && anx >= anz) {
+            // Проекция YZ (нормаль ближе к X)
+            return [
+                [v1m[1], v1m[2]], // Используем метры напрямую
+                [v2m[1], v2m[2]],
+                [v3m[1], v3m[2]]
+            ];
+        } else if (any >= anx && any >= anz) {
+            // Проекция XZ (нормаль ближе к Y)
+            return [
+                [v1m[0], v1m[2]],
+                [v2m[0], v2m[2]],
+                [v3m[0], v3m[2]]
+            ];
         } else {
-            // Для кромок нам нужна проекция, где одна координата идет вдоль кромки,
-            // а вторая - по высоте (обычно это Z)
-            
-            // Найдем самое длинное ребро треугольника - оно идет вдоль кромки
-            let edge1 = [v2m[0]-v1m[0], v2m[1]-v1m[1], v2m[2]-v1m[2]];
-            let edge2 = [v3m[0]-v2m[0], v3m[1]-v2m[1], v3m[2]-v2m[2]];
-            let edge3 = [v1m[0]-v3m[0], v1m[1]-v3m[1], v1m[2]-v3m[2]];
-            
-            let len1 = Math.sqrt(edge1[0]*edge1[0] + edge1[1]*edge1[1] + edge1[2]*edge1[2]);
-            let len2 = Math.sqrt(edge2[0]*edge2[0] + edge2[1]*edge2[1] + edge2[2]*edge2[2]);
-            let len3 = Math.sqrt(edge3[0]*edge3[0] + edge3[1]*edge3[1] + edge3[2]*edge3[2]);
-            
-            // Выбираем самое длинное ребро
-            let longestEdge;
-            if (len1 >= len2 && len1 >= len3) longestEdge = edge1;
-            else if (len2 >= len1 && len2 >= len3) longestEdge = edge2;
-            else longestEdge = edge3;
-            
-            // Определяем его направление
-            let absX = Math.abs(longestEdge[0]);
-            let absY = Math.abs(longestEdge[1]);
-            let absZ = Math.abs(longestEdge[2]);
-            
-            // Главное направление кромки всегда должно быть перпендикулярно нормали панели
-            // Для простоты используем проекцию на плоскость, перпендикулярную нормали панели
-            if (panelProjection === 'XY') {
-                // Нормаль панели близка к Z, значит кромки идут по XY
-                // Выбираем X или Y как основное направление в зависимости от длины ребра
-                if (absX >= absY) {
-                    return [
-                        [v1m[0], v1m[2]], // X вдоль кромки, Z - высота
-                        [v2m[0], v2m[2]],
-                        [v3m[0], v3m[2]]
-                    ];
-                } else {
-                    return [
-                        [v1m[1], v1m[2]], // Y вдоль кромки, Z - высота
-                        [v2m[1], v2m[2]],
-                        [v3m[1], v3m[2]]
-                    ];
-                }
-            } else if (panelProjection === 'XZ') {
-                // Нормаль панели близка к Y, значит кромки идут по XZ
-                if (absX >= absZ) {
-                    return [
-                        [v1m[0], v1m[1]], // X вдоль кромки, Y - высота
-                        [v2m[0], v2m[1]],
-                        [v3m[0], v3m[1]]
-                    ];
-                } else {
-                    return [
-                        [v1m[2], v1m[1]], // Z вдоль кромки, Y - высота
-                        [v2m[2], v2m[1]],
-                        [v3m[2], v3m[1]]
-                    ];
-                }
-            } else { // YZ
-                // Нормаль панели близка к X, значит кромки идут по YZ
-                if (absY >= absZ) {
-                    return [
-                        [v1m[1], v1m[0]], // Y вдоль кромки, X - высота
-                        [v2m[1], v2m[0]],
-                        [v3m[1], v3m[0]]
-                    ];
-                } else {
-                    return [
-                        [v1m[2], v1m[0]], // Z вдоль кромки, X - высота
-                        [v2m[2], v2m[0]],
-                        [v3m[2], v3m[0]]
-                    ];
-                }
-            }
+            // Проекция XY (нормаль ближе к Z)
+            return [
+                [v1m[0], v1m[1]],
+                [v2m[0], v2m[1]],
+                [v3m[0], v3m[1]]
+            ];
         }
     }
 
@@ -1768,10 +1708,18 @@ function exportPanelAndButts(panel, index) {
                     });
     
                     // Получаем текстурные координаты
-                    let texCoords = generateTextureCoords(v1m, v2m, v3m, isFace);
+                    // let texCoords = generateTextureCoords(v1m, v2m, v3m, isFace);
+
+                    let tx1 = tri.TexCoord1.x;
+                    let ty1 = tri.TexCoord1.y;
+                    let tx2 = tri.TexCoord2.x;
+                    let ty2 = tri.TexCoord2.y;
+                    let tx3 = tri.TexCoord3.x;
+                    let ty3 = tri.TexCoord3.y;
 
                     if (isPanelSurface) {
-                        panelTexCoords.push(...texCoords);
+                        // panelTexCoords.push(...texCoords);
+                        panelTexCoords.push([tx1, ty1], [tx2, ty2], [tx3, ty3]);
 
                         // Сохраняем в массивы панели
                         panelVertices.push(v1m, v2m, v3m);
@@ -1781,7 +1729,8 @@ function exportPanelAndButts(panel, index) {
                         panelTotalVertices += 3;
 
                     } else {
-                        buttTexCoords.push(...texCoords);
+                        // buttTexCoords.push(...texCoords);
+                        buttTexCoords.push([tx1, ty1], [tx2, ty2], [tx3, ty3]);
                         
                         // Сохраняем в массивы кромок
                         buttVertices.push(v1m, v2m, v3m);
