@@ -2658,8 +2658,8 @@ function createSpecialComponent(obj, index, parentRotation = null) {
             component.material
         ],
         "nodes":  [
-            'defaultobject',
-            'defaultobject.001'
+            'node1',
+            'node2'
             
         ],
         "type": 16

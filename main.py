@@ -333,6 +333,9 @@ def merge_panel_and_butts_fbx(IdProject):
             success_count += 1
             log_message(f"Success: Created {merged_file}")
             
+            os.remove(panel_path)
+            os.remove(butts_path)
+            
         except Exception as e:
             error_count += 1
             log_message(f"Error merging files for index {index}: {str(e)}", IdProject=IdProject)
