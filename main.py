@@ -32,6 +32,7 @@ SUPERUSERS_FILE = "superusers.txt"
 ENDPOINT = os.getenv('ENDPOINT')
 
 ASSIMP_PATH = os.getenv('ASSIMP_PATH')
+ASPOSE_PATH = os.getenv('ASPOSE_PATH')
 
 # SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPT_DIR = "results"
@@ -290,6 +291,54 @@ def convert_all_obj_to_fbx(IdProject):
     log_message(f".OBJ models conveted to .FBX successfully: {success_count}/ {total_files}", IdProject=IdProject)
     return success_count
 
+def merge_panel_and_butts_fbx(IdProject):
+    directory=SCRIPT_DIR
+
+    success_count = 0
+    error_count = 0
+    
+    # Получаем все файлы панелей
+    panel_files = [f for f in os.listdir(directory) if f.startswith('panel_') and f.endswith('.fbx')]
+    total_files = len(panel_files)
+    
+    if total_files == 0:
+        log_message(f"No panel FBX files found in {directory}", IdProject=IdProject)
+        return 0
+        
+    log_message(f"Found {total_files} panel FBX files to merge", IdProject=IdProject)
+    
+    for panel_file in panel_files:
+        try:
+            # Получаем индекс из имени файла
+            index = panel_file.replace('panel_', '').replace('.fbx', '')
+            
+            # Формируем имена файлов
+            butts_file = f"butts_{index}.fbx"
+            merged_file = f"merged_panel_{index}.fbx"
+            
+            panel_path = os.path.join(directory, panel_file)
+            butts_path = os.path.join(directory, butts_file)
+            merged_path = os.path.join(directory, merged_file)
+            
+            # Проверяем существование файла кромок
+            if not os.path.exists(butts_path):
+                log_message(f"Warning: Butts file {butts_file} not found, skipping merge", IdProject=IdProject)
+                continue
+            
+            log_message(f"\nMerging: {panel_file} + {butts_file}")
+            
+            # Запускаем утилиту для объединения FBX
+            subprocess.run([ASPOSE_PATH, panel_path, butts_path, merged_path], check=True)
+            
+            success_count += 1
+            log_message(f"Success: Created {merged_file}")
+            
+        except Exception as e:
+            error_count += 1
+            log_message(f"Error merging files for index {index}: {str(e)}", IdProject=IdProject)
+
+    log_message(f"Panel and butts merged successfully: {success_count}/{total_files}", IdProject=IdProject)
+    return success_count
 
 
 def process_folder(folder_path, pirate_mode, project_id):

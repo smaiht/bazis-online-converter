@@ -212,3 +212,63 @@ for (let i=0; i <= 5; i++) {
 }
     
 newItem.Build();
+
+
+/////////////// FINAL: ///////////// 
+
+
+
+let test = Model[1]
+console.log(test.IsContourRectangle)
+console.log(test.Butts)
+
+let bt = [];
+
+
+if (test.Butts && test.Butts.Count) {
+    for (let i = 0; i < test.Butts.Count; i++) {
+        console.log(1)
+
+        let bu = test.Butts[i];
+
+        bt.push({
+            "ElemIndex": bu.ElemIndex,
+            "ClipPanel": bu.ClipPanel,
+            "Material": bu.Material,
+            "Sign": bu.Sign,
+            "Thickness": bu.Thickness
+        })
+    }
+}
+
+console.log(bt)
+
+
+
+
+Model[1].Butts.Clear()
+Model[1].Build()
+
+// system.sleep(333);
+
+let newc = NewContour();
+newc.Load('kr16.frw');
+var newItem = test
+
+
+
+
+for (let i = 0; i <= bt.length; i++) {
+    let savedButtInfo = bt[i];
+
+    var Butt = newItem.Butts.Add();
+    Butt.ElemIndex = savedButtInfo.ElemIndex;
+    Butt.ClipPanel = savedButtInfo.ClipPanel;
+    Butt.Material = savedButtInfo.Material;
+    Butt.Sign =  savedButtInfo.Sign;
+    Butt.Thickness = savedButtInfo.Thickness;
+    Butt.Profile = newc;
+
+}
+    
+newItem.Build();

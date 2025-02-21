@@ -1486,10 +1486,188 @@ let nodes = [];
 let totalProcessed = 0;
 const pauseInterval = 10;
 
-
 // Furniture?
 let visibleModels = []
 let hiddenModels = []
+
+let profilesCache = {};
+
+// Функция для получения профиля из кэша или загрузки нового
+function getProfile(panelThickness, buttThickness) {
+    let panelThickRounded = Math.round(panelThickness);
+
+    let buttThickRounded = 0
+    if (buttThickness > 1) {
+        buttThickRounded = Math.round(buttThickness);
+    } else {
+        buttThickRounded = Math.round(buttThickness * 10) / 10; // округление до 0.1 если меньше 1
+    }
+    
+    let profileName = `${panelThickRounded}_${buttThickRounded.toString().replace('.', '')}`;
+    
+    if (profilesCache[profileName]) {
+        return profilesCache[profileName];
+    }
+    
+    let filePath = `butts/${profileName}.frw`;
+    if (!system.fileExists(filePath)) {
+        filePath = "butts/default.frw";
+    }
+    
+    let newProfile = NewContour();
+    newProfile.Load(filePath);
+    
+    profilesCache[profileName] = newProfile;
+    return newProfile;
+}
+
+function applyButts(panel) {
+    if (!panel.Butts) {
+        return null;
+    }
+
+    // Сохраняем информацию о кромках
+    let buttsInfo = [];
+    for (let i = 0; i < panel.Butts.Count; i++) {
+        let bu = panel.Butts[i];
+        buttsInfo.push({
+            "ElemIndex": bu.ElemIndex,
+            "ClipPanel": bu.ClipPanel,
+            "Material": bu.Material,
+            "Sign": bu.Sign,
+            "Thickness": bu.Thickness
+        });
+    }
+    
+    // Очищаем существующие кромки
+    panel.Butts.Clear();
+    panel.Build();
+    
+    // Применяем новые кромки с профилями
+    for (let i = 0; i < buttsInfo.length; i++) {
+        let buttInfo = buttsInfo[i];
+        
+        var butt = panel.Butts.Add();
+        butt.ElemIndex = buttInfo.ElemIndex;
+        butt.ClipPanel = buttInfo.ClipPanel;
+        butt.Material = buttInfo.Material;
+        butt.Sign = buttInfo.Sign;
+        butt.Thickness = buttInfo.Thickness;
+        
+        // Получаем профиль из кэша или загружаем новый
+        butt.Profile = getProfile(panel.Thickness, buttInfo.Thickness);
+    }
+    
+    panel.Build();
+
+    return buttsInfo;
+}
+
+function exportPanelAndButts(panel, index) {
+    // Массивы для панели
+    let panelVertices = [];
+    let panelFaces = [];
+    let panelTotalVertices = 0;
+    
+    // Массивы для кромок 
+    let buttVertices = [];
+    let buttFaces = []; 
+    let buttTotalVertices = 0;
+    
+    let minX = Infinity, minY = Infinity, minZ = Infinity;
+    let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+    
+    function exportObject(obj) {
+       if (obj.TriListsCount) {
+           for(let i = 0; i < obj.TriListsCount; i++) {
+               let triPack = obj.TriLists[i];
+               
+               // Проверяем тип поверхности
+               let isPanelSurface = (
+                triPack.toString() == "[object TFurnPanelSide]" 
+                || triPack.toString() == "[object TFurnPanelFace]"
+               );
+    
+               for(let j = 0; j < triPack.Count; j++) {
+                   let tri = triPack.Triangles[j];
+                   let v1 = obj.ToGlobal(tri.Vertex1);
+                   let v2 = obj.ToGlobal(tri.Vertex2);
+                   let v3 = obj.ToGlobal(tri.Vertex3);
+    
+                   const v1m = [v1.x/1000, v1.y/1000, v1.z/1000];
+                   const v2m = [v2.x/1000, v2.y/1000, v2.z/1000];
+                   const v3m = [v3.x/1000, v3.y/1000, v3.z/1000];
+    
+                   [v1m, v2m, v3m].forEach(v => {
+                       minX = Math.min(minX, v[0]);
+                       minY = Math.min(minY, v[1]);
+                       minZ = Math.min(minZ, v[2]);
+                       maxX = Math.max(maxX, v[0]);
+                       maxY = Math.max(maxY, v[1]); 
+                       maxZ = Math.max(maxZ, v[2]);
+                   });
+    
+                   if (isPanelSurface) {
+                       // Сохраняем в массивы панели
+                       panelVertices.push(v1m, v2m, v3m);
+                       let baseIndex = panelTotalVertices + 1;
+                       panelFaces.push(`f ${baseIndex} ${baseIndex+1} ${baseIndex+2}`);
+                       panelTotalVertices += 3;
+                   } else {
+                       // Сохраняем в массивы кромок
+                       buttVertices.push(v1m, v2m, v3m);
+                       let baseIndex = buttTotalVertices + 1;
+                       buttFaces.push(`f ${baseIndex} ${baseIndex+1} ${baseIndex+2}`);
+                       buttTotalVertices += 3;
+                   }
+               }
+           }
+       }
+    
+       if (obj.List) {
+           for(let i = 0; i < obj.Count; i++) {
+               exportObject(obj.Objects[i]);
+               system.sleep(1);
+           }
+       }
+    }
+    
+    exportObject(panel);
+    
+    const center = {
+       x: (minX + maxX) / 2,
+       y: (minY + maxY) / 2,
+       z: (minZ + maxZ) / 2
+    };
+    
+    // Экспорт панели
+    const panelObjVertices = panelVertices.map(v =>
+       `v ${v[0] - center.x} ${v[1] - center.y} ${v[2] - center.z}`
+    );
+    fs.writeFileSync(`results/panel_${index}.obj`, [...panelObjVertices, ...panelFaces].join('\n'));
+    
+    // Экспорт кромок
+    if (buttVertices.length) {
+        const buttObjVertices = buttVertices.map(v => 
+           `v ${v[0] - center.x} ${v[1] - center.y} ${v[2] - center.z}`
+        );
+        fs.writeFileSync(`results/butts_${index}.obj`, [...buttObjVertices, ...buttFaces].join('\n'));
+
+    } else {
+        const defaultSize = 0.0001;
+        let emptyVerticesArray = [
+            [0, 0, 0],
+            [defaultSize, 0, 0],
+            [0, defaultSize, 0]
+        ];
+        let emptyFaces = ['f 1 2 3'];
+    
+        const emptyVertices = emptyVerticesArray.map(v => 
+            `v ${v[0]} ${v[1]} ${v[2]}`
+        );
+        fs.writeFileSync(`results/butts_${index}.obj`, [...emptyVertices, ...emptyFaces].join('\n'));
+    }
+}
 
 
 function quaternionToEuler(q) {
@@ -2415,6 +2593,83 @@ function findEdgePositions(contour) {
 
 
 
+function createSpecialComponent(obj, index, parentRotation = null) {
+    let component = {};
+
+    component.position = getNewComponentPosition(obj)
+
+    let localRotation = {
+        x: obj.Rotation.ImagPart.x,
+        y: -obj.Rotation.ImagPart.y,
+        z: -obj.Rotation.ImagPart.z,
+        w: obj.Rotation.RealPart
+    };
+    component.rotation = parentRotation 
+        ? multiplyQuaternions(parentRotation, localRotation) 
+        : localRotation;
+
+    component.eulers = quaternionToEuler(component.rotation)
+    
+    component.size = {
+        "x": obj.TextureOrientation == ftoVertical ? obj.GSize.x : obj.GSize.x,
+        "y": obj.TextureOrientation == ftoVertical ? obj.GSize.y : obj.GSize.y,
+        "z": obj.Thickness
+    };
+
+    component.color = null;
+    component.ignore_bounds = true;
+    component.bake = null;
+    component.processings = [];
+    component.is_active = true;
+    component.max_texture_size = 512;
+    component.build_order = index;
+    component.detailing_order = index;
+    component.order = index;
+    component.positioning_points = [];
+    component.name = obj.Name + index;
+    component.path = "Детали";
+    component.guid = newGuid();
+    
+    // Something to do with materials ... it's a mess
+    let matIndex = colors.findIndex(el => el == obj.Material.MaterialName);
+    if ( matIndex == -1) {
+        colors.push(obj.Material.MaterialName);
+        details.push([component.path+'/'+component.name]);
+    } else {
+        details[matIndex].push(component.path+'/'+component.name);
+    };
+    let materialGUID = getMaterialGuid(obj.Material.MaterialName, component);
+
+    component.material = "s123mat://" + materialGUID
+
+
+    // Butts:
+    let buttsInfo = applyButts(obj);
+    component.user_data = buttsInfo;
+    // let buttsMaterial // TODO:
+
+    exportPanelAndButts(panel, index)
+
+
+    component.modifier = {
+        "file": `file://merged_panel_${index}.fbx`,
+        "materials": [
+            component.material,
+            component.material
+        ],
+        "nodes":  [
+            'defaultobject',
+            'defaultobject.001'
+            
+        ],
+        "type": 16
+    };
+
+    component.full_path = component.path+'/'+component.name
+
+    return component
+}
+
 function createComponent(obj, index, parentRotation = null) {
     let component = {};
 
@@ -2445,6 +2700,7 @@ function createComponent(obj, index, parentRotation = null) {
     component.is_active = true;
     component.max_texture_size = 512;
     component.build_order = index;
+    component.detailing_order = index;
     component.order = index;
     component.user_data = null;
     component.positioning_points = [];
@@ -2755,6 +3011,7 @@ function createMeshComponent(obj, index, parentRotation = null) {
     component.is_active = true;
     component.max_texture_size = 512;
     component.build_order = index;
+    component.detailing_order = index;
     component.order = index;
     component.user_data = null;
     component.positioning_points = [];
@@ -2922,7 +3179,11 @@ function processLevel(
         let component
 
         if (item.toString() == '[object TFurnPanel]') {
-            component = createComponent(item, totalProcessed, parentRotation);
+            if (item.IsContourRectangle) {
+                component = createSpecialComponent(item, totalProcessed, parentRotation);
+            } else {
+                component = createComponent(item, totalProcessed, parentRotation);
+            }
 
         } else {
             component = createMeshComponent(item, totalProcessed, parentRotation);

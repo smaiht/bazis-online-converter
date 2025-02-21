@@ -57,53 +57,61 @@ ICON_SIZE = 512
 TIMEOUT = 240
 
 
-import os
-import pyassimp.helper
+# import os
+# import pyassimp.helper
 
 
-# Добавляем путь к папке с assimp.dll в список поиска
-ASSIMP_PATH2="C:\\Program Files\\Assimp\\bin\\x64"
-assimp_dir = os.path.dirname(ASSIMP_PATH2)
-pyassimp.helper.additional_dirs.append(assimp_dir)
+# # Добавляем путь к папке с assimp.dll в список поиска
+# ASSIMP_PATH2="C:\\Program Files\\Assimp\\bin\\x64"
+# assimp_dir = os.path.dirname(ASSIMP_PATH2)
+# pyassimp.helper.additional_dirs.append(assimp_dir)
 
 
 
-import pyassimp
-import os
+# import pyassimp
+# import os
 
-def combine_models():
-    try:
-        # Загружаем обе модели
-        panel_scene = pyassimp.load(os.path.join(SCRIPT_DIR, "panel.obj"))
-        butts_scene = pyassimp.load(os.path.join(SCRIPT_DIR, "butts.obj"))
+# def combine_models():
+#     try:
+#         # Загружаем обе модели
+#         panel_scene = pyassimp.load(os.path.join(SCRIPT_DIR, "panel.obj"))
+#         butts_scene = pyassimp.load(os.path.join(SCRIPT_DIR, "butts.obj"))
 
-        # Создаем новую сцену
-        combined_scene = pyassimp.Scene()
+#         # Создаем новую сцену
+#         combined_scene = pyassimp.Scene()
         
-        # Создаем корневой узел
-        combined_scene.rootnode = pyassimp.Node("root")
+#         # Создаем корневой узел
+#         combined_scene.rootnode = pyassimp.Node("root")
         
-        # Создаем узлы для панели и кромок
-        panel_node = pyassimp.Node("Panel")
-        butts_node = pyassimp.Node("Butts")
+#         # Создаем узлы для панели и кромок
+#         panel_node = pyassimp.Node("Panel")
+#         butts_node = pyassimp.Node("Butts")
         
-        # Добавляем меши в соответствующие узлы
-        panel_node.meshes = panel_scene.meshes
-        butts_node.meshes = butts_scene.meshes
+#         # Добавляем меши в соответствующие узлы
+#         panel_node.meshes = panel_scene.meshes
+#         butts_node.meshes = butts_scene.meshes
         
-        # Добавляем узлы в корневой узел
-        combined_scene.rootnode.children.append(panel_node)
-        combined_scene.rootnode.children.append(butts_node)
+#         # Добавляем узлы в корневой узел
+#         combined_scene.rootnode.children.append(panel_node)
+#         combined_scene.rootnode.children.append(butts_node)
 
-        # Экспортируем в FBX
-        pyassimp.export(combined_scene, os.path.join(SCRIPT_DIR, "combined.fbx"), 'fbx')
+#         # Экспортируем в FBX
+#         pyassimp.export(combined_scene, os.path.join(SCRIPT_DIR, "combined.fbx"), 'fbx')
         
-        # Освобождаем ресурсы
-        pyassimp.release(panel_scene)
-        pyassimp.release(butts_scene)
+#         # Освобождаем ресурсы
+#         pyassimp.release(panel_scene)
+#         pyassimp.release(butts_scene)
         
-        return True
+#         return True
         
-    except Exception as e:
-        print(f"Error combining models: {str(e)}")
-        return False
+#     except Exception as e:
+#         print(f"Error combining models: {str(e)}")
+#         return False
+
+
+
+first = (os.path.join(SCRIPT_DIR, "panel.fbx"))
+second = (os.path.join(SCRIPT_DIR, "butts.fbx"))
+out = (os.path.join(SCRIPT_DIR, "out.fbx"))
+
+subprocess.run(["_dev\\test_kromki_3d\\merge_to_fbx.exe", first, second, 'output4.fbx'], check=True)
