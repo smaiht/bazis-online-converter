@@ -1710,12 +1710,12 @@ function exportPanelAndButts(panel, index) {
                     // Получаем текстурные координаты
                     // let texCoords = generateTextureCoords(v1m, v2m, v3m, isFace);
 
-                    let tx1 = tri.TexCoord1.x;
-                    let ty1 = tri.TexCoord1.y;
-                    let tx2 = tri.TexCoord2.x;
-                    let ty2 = tri.TexCoord2.y;
-                    let tx3 = tri.TexCoord3.x;
-                    let ty3 = tri.TexCoord3.y;
+                    let tx1 = tri.TexCoord1.x/1000;
+                    let ty1 = tri.TexCoord1.y/1000;
+                    let tx2 = tri.TexCoord2.x/1000;
+                    let ty2 = tri.TexCoord2.y/1000;
+                    let tx3 = tri.TexCoord3.x/1000;
+                    let ty3 = tri.TexCoord3.y/1000;
 
                     if (isPanelSurface) {
                         // panelTexCoords.push(...texCoords);
