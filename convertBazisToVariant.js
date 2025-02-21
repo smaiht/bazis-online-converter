@@ -1578,103 +1578,6 @@ function exportPanelAndButts(panel, index) {
     
     let minX = Infinity, minY = Infinity, minZ = Infinity;
     let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
-    
-    // Сначала найдем нормаль основной панели (TFurnPanelFace)
-    let panelNormal = null;
-    
-    function findPanelNormal(obj) {
-        if (!panelNormal && obj.TriListsCount) {
-            for(let i = 0; i < obj.TriListsCount; i++) {
-                let triPack = obj.TriLists[i];
-                
-                // Ищем только плоскость панели
-                if (triPack.toString() == "[object TFurnPanelFace]") {
-                    if (triPack.Count > 0) {
-                        let tri = triPack.Triangles[0];
-                        let v1 = obj.ToGlobal(tri.Vertex1);
-                        let v2 = obj.ToGlobal(tri.Vertex2);
-                        let v3 = obj.ToGlobal(tri.Vertex3);
-                        
-                        const v1m = [v1.x/1000, v1.y/1000, v1.z/1000];
-                        const v2m = [v2.x/1000, v2.y/1000, v2.z/1000];
-                        const v3m = [v3.x/1000, v3.y/1000, v3.z/1000];
-                        
-                        // Вычисляем нормаль
-                        let nx = (v2m[1] - v1m[1]) * (v3m[2] - v1m[2]) - (v2m[2] - v1m[2]) * (v3m[1] - v1m[1]);
-                        let ny = (v2m[2] - v1m[2]) * (v3m[0] - v1m[0]) - (v2m[0] - v1m[0]) * (v3m[2] - v1m[2]);
-                        let nz = (v2m[0] - v1m[0]) * (v3m[1] - v1m[1]) - (v2m[1] - v1m[1]) * (v3m[0] - v1m[0]);
-                        
-                        // Нормализуем
-                        let len = Math.sqrt(nx*nx + ny*ny + nz*nz);
-                        panelNormal = [nx/len, ny/len, nz/len];
-                    }
-                }
-            }
-        }
-        
-        panelNormal = [0, 0, 1];
-    }
-
-    findPanelNormal(panel);
-    
-    // Получаем доминирующую ось нормали
-    let absNX = Math.abs(panelNormal[0]);
-    let absNY = Math.abs(panelNormal[1]);
-    let absNZ = Math.abs(panelNormal[2]);
-    
-    // Определяем проекционную плоскость для панели
-    let panelProjection;
-    if (absNZ >= absNX && absNZ >= absNY) {
-        // Нормаль ближе к Z - проекция на XY
-        panelProjection = 'XY';
-    } else if (absNY >= absNX && absNY >= absNZ) {
-        // Нормаль ближе к Y - проекция на XZ
-        panelProjection = 'XZ';
-    } else {
-        // Нормаль ближе к X - проекция на YZ
-        panelProjection = 'YZ';
-    }
-    
-    function generateTextureCoords(v1m, v2m, v3m, isPanelSurface) {
-        // Определяем нормаль треугольника
-        let nx = (v2m[1] - v1m[1]) * (v3m[2] - v1m[2]) - (v2m[2] - v1m[2]) * (v3m[1] - v1m[1]);
-        let ny = (v2m[2] - v1m[2]) * (v3m[0] - v1m[0]) - (v2m[0] - v1m[0]) * (v3m[2] - v1m[2]);
-        let nz = (v2m[0] - v1m[0]) * (v3m[1] - v1m[1]) - (v2m[1] - v1m[1]) * (v3m[0] - v1m[0]);
-        
-        // Нормализуем
-        let len = Math.sqrt(nx*nx + ny*ny + nz*nz);
-        nx /= len;
-        ny /= len;
-        nz /= len;
-        
-        // Берем абсолютные значения нормали
-        let anx = Math.abs(nx);
-        let any = Math.abs(ny);
-        let anz = Math.abs(nz);
-        
-        if (anx >= any && anx >= anz) {
-            // Проекция YZ (нормаль ближе к X)
-            return [
-                [v1m[1], v1m[2]], // Используем метры напрямую
-                [v2m[1], v2m[2]],
-                [v3m[1], v3m[2]]
-            ];
-        } else if (any >= anx && any >= anz) {
-            // Проекция XZ (нормаль ближе к Y)
-            return [
-                [v1m[0], v1m[2]],
-                [v2m[0], v2m[2]],
-                [v3m[0], v3m[2]]
-            ];
-        } else {
-            // Проекция XY (нормаль ближе к Z)
-            return [
-                [v1m[0], v1m[1]],
-                [v2m[0], v2m[1]],
-                [v3m[0], v3m[1]]
-            ];
-        }
-    }
 
     function exportObject(obj) {
         if (obj.TriListsCount) {
@@ -1708,8 +1611,6 @@ function exportPanelAndButts(panel, index) {
                     });
     
                     // Получаем текстурные координаты
-                    // let texCoords = generateTextureCoords(v1m, v2m, v3m, isFace);
-
                     let tx1 = tri.TexCoord1.x/1000;
                     let ty1 = tri.TexCoord1.y/1000;
                     let tx2 = tri.TexCoord2.x/1000;
@@ -1718,24 +1619,27 @@ function exportPanelAndButts(panel, index) {
                     let ty3 = tri.TexCoord3.y/1000;
 
                     if (isPanelSurface) {
-                        // panelTexCoords.push(...texCoords);
-                        panelTexCoords.push([tx1, ty1], [tx2, ty2], [tx3, ty3]);
+                        // panelTexCoords.push([tx1, ty1], [tx2, ty2], [tx3, ty3]);
+                        // Поворачиваем на 90 градусов текстурные координаты для панелей
+                        // Меняем x и y местами и инвертируем одну из координат
+                        panelTexCoords.push(
+                            [ty1, tx1],  // Поворот на 90 градусов
+                            [ty2, tx2],
+                            [ty3, tx3]
+                        );
 
                         // Сохраняем в массивы панели
                         panelVertices.push(v1m, v2m, v3m);
                         let baseIndex = panelTotalVertices + 1;
-                        //    panelFaces.push(`f ${baseIndex} ${baseIndex+1} ${baseIndex+2}`);
                         panelFaces.push(`f ${baseIndex}/${baseIndex} ${baseIndex+1}/${baseIndex+1} ${baseIndex+2}/${baseIndex+2}`);
                         panelTotalVertices += 3;
 
                     } else {
-                        // buttTexCoords.push(...texCoords);
                         buttTexCoords.push([tx1, ty1], [tx2, ty2], [tx3, ty3]);
                         
                         // Сохраняем в массивы кромок
                         buttVertices.push(v1m, v2m, v3m);
                         let baseIndex = buttTotalVertices + 1;
-                        // buttFaces.push(`f ${baseIndex} ${baseIndex+1} ${baseIndex+2}`);
                         buttFaces.push(`f ${baseIndex}/${baseIndex} ${baseIndex+1}/${baseIndex+1} ${baseIndex+2}/${baseIndex+2}`);
                         buttTotalVertices += 3;
                     }
