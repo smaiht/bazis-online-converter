@@ -1563,18 +1563,25 @@ function applyButts(panel) {
     return buttsInfo;
 }
 
+function normalizeVector(v) {
+    let len = Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+    return [v[0]/len, v[1]/len, v[2]/len];
+}
+
 function exportPanelAndButts(panel, index) {
     // Массивы для панели
     let panelVertices = [];
     let panelFaces = [];
     let panelTotalVertices = 0;
     let panelTexCoords = [];
+    let panelNormals = [];
     
     // Массивы для кромок 
     let buttVertices = [];
     let buttFaces = []; 
     let buttTotalVertices = 0;
     let buttTexCoords = [];
+    let buttNormals = [];
     
     let minX = Infinity, minY = Infinity, minZ = Infinity;
     let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
@@ -1618,6 +1625,13 @@ function exportPanelAndButts(panel, index) {
                     let tx3 = tri.TexCoord3.x/1000;
                     let ty3 = tri.TexCoord3.y/1000;
 
+                    let n1 = obj.ToGlobal(tri.Normal1);
+                    let n2 = obj.ToGlobal(tri.Normal2);
+                    let n3 = obj.ToGlobal(tri.Normal3);
+                    let n1m = normalizeVector([n1.x, n1.y, n1.z]);
+                    let n2m = normalizeVector([n2.x, n2.y, n2.z]);
+                    let n3m = normalizeVector([n3.x, n3.y, n3.z]);
+
                     if (isPanelSurface) {
                         // panelTexCoords.push([tx1, ty1], [tx2, ty2], [tx3, ty3]);
                         // Поворачиваем на 90 градусов текстурные координаты для панелей
@@ -1627,20 +1641,22 @@ function exportPanelAndButts(panel, index) {
                             [ty2, tx2],
                             [ty3, tx3]
                         );
+                        panelNormals.push(n1m, n2m, n3m);
 
                         // Сохраняем в массивы панели
                         panelVertices.push(v1m, v2m, v3m);
                         let baseIndex = panelTotalVertices + 1;
-                        panelFaces.push(`f ${baseIndex}/${baseIndex} ${baseIndex+1}/${baseIndex+1} ${baseIndex+2}/${baseIndex+2}`);
+                        panelFaces.push(`f ${baseIndex}/${baseIndex}/${baseIndex} ${baseIndex+1}/${baseIndex+1}/${baseIndex+1} ${baseIndex+2}/${baseIndex+2}/${baseIndex+2}`);
                         panelTotalVertices += 3;
 
                     } else {
                         buttTexCoords.push([tx1, ty1], [tx2, ty2], [tx3, ty3]);
+                        buttNormals.push(n1m, n2m, n3m);
                         
                         // Сохраняем в массивы кромок
                         buttVertices.push(v1m, v2m, v3m);
                         let baseIndex = buttTotalVertices + 1;
-                        buttFaces.push(`f ${baseIndex}/${baseIndex} ${baseIndex+1}/${baseIndex+1} ${baseIndex+2}/${baseIndex+2}`);
+                        buttFaces.push(`f ${baseIndex}/${baseIndex}/${baseIndex} ${baseIndex+1}/${baseIndex+1}/${baseIndex+1} ${baseIndex+2}/${baseIndex+2}/${baseIndex+2}`);
                         buttTotalVertices += 3;
                     }
                 }
@@ -1672,10 +1688,14 @@ function exportPanelAndButts(panel, index) {
     const panelObjTexCoords = panelTexCoords.map(t =>
        `vt ${t[0]} ${t[1]}`
     );
+    const panelObjNormals = panelNormals.map(n =>
+        `vn ${n[0]} ${n[1]} ${n[2]}`
+    );
     
     fs.writeFileSync(`results/panel_${index}.obj`, [
        ...panelObjVertices, 
        ...panelObjTexCoords,
+       ...panelObjNormals,
        ...panelFaces
     ].join('\n'));
     
@@ -1689,10 +1709,14 @@ function exportPanelAndButts(panel, index) {
         const buttObjTexCoords = buttTexCoords.map(t =>
            `vt ${t[0]} ${t[1]}`
         );
+        const buttObjNormals = buttNormals.map(n =>
+           `vn ${n[0]} ${n[1]} ${n[2]}`
+        );
         
         fs.writeFileSync(`results/butts_${index}.obj`, [
            ...buttObjVertices,
            ...buttObjTexCoords,
+           ...buttObjNormals,
            ...buttFaces
         ].join('\n'));
 
