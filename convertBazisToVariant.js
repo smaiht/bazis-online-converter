@@ -2481,8 +2481,10 @@ function getNewComponentPosition(obj) {
 }
 
 function determineAnimationType(obj) {
-    let axisStart = obj.ToGlobal(obj.Animation.AxisStart);
-    let axisEnd = obj.ToGlobal(obj.Animation.AxisEnd);
+    // let axisStart = obj.ToGlobal(obj.Animation.AxisStart);
+    // let axisEnd = obj.ToGlobal(obj.Animation.AxisEnd);
+    let axisStart = (obj.Animation.AxisStart);
+    let axisEnd = (obj.Animation.AxisEnd);
 
     // Вычисляем разницы по модулю между координатами
     let diffX = Math.abs( Math.abs(axisEnd.x) - Math.abs(axisStart.x) );
