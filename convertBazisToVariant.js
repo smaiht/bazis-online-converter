@@ -2480,6 +2480,58 @@ function getNewComponentPosition(obj) {
     };
 }
 
+function determineAnimationType(obj) {
+    let axisStart = obj.ToGlobal(obj.Animation.AxisStart);
+    let axisEnd = obj.ToGlobal(obj.Animation.AxisEnd);
+
+    // Вычисляем разницы по модулю между координатами
+    let diffX = Math.abs(axisEnd.x - axisStart.x);
+    let diffY = Math.abs(axisEnd.y - axisStart.y);
+    let diffZ = Math.abs(axisEnd.z - axisStart.z);
+
+    if (obj.AnimationType == 1) { // Ротация
+        // Определяем основную ось вращения
+        let maxDiff = Math.max(diffX, diffY, diffZ);
+        
+        if (maxDiff === diffY) {
+            // Вращение вокруг оси Y
+            if (axisStart.y > axisEnd.y) {
+                return 2; // От большего к меньшему
+            } else {
+                return 3; // От меньшего к большему
+            }
+        } 
+        else if (maxDiff === diffX) {
+            // Вращение вокруг оси X
+            if (axisStart.x > axisEnd.x) {
+                return 5; // От большего к меньшему
+            } else {
+                return 4; // От меньшего к большему
+            }
+        }
+        else {
+            return 2; // default
+        }
+    } 
+    else if (obj.AnimationType == 2) { // Трансляция
+        let maxDiff = Math.max(diffX, diffY, diffZ);
+        
+        if (maxDiff === diffZ) {
+            return 8; // Движение по Z (от меньшего к большему при енде)
+        } 
+        else if (maxDiff === diffX) {
+            if (axisStart.x < axisEnd.x) {
+                return 6; // По X от меньшего к большему при енде
+            } else {
+                return 7; // По X от большего к меньшему при енде
+            }
+        }
+        else {
+            return 6; // default
+        }
+    }
+}
+
 function getAnimationPosition(obj) {
     var prop1 = obj.GabMax;
     var prop2 = obj.GabMin;
@@ -3193,7 +3245,8 @@ function processLevel(
 
             if ((item.AnimType >= 2 && item.AnimType <= 5)  || item.AnimationType == 1) { // Rotate
                 if (item.AnimType == 0) {
-                    item.AnimType = 2 // idk lets try 2(4), or then 3(5)
+                    // item.AnimType = 2 // idk lets try 2(4), or then 3(5)
+                    item.AnimType = determineAnimationType(item);
                 }
 
                 currentAnimType = item.AnimType
@@ -3211,7 +3264,8 @@ function processLevel(
 
             } else if ((item.AnimType >= 6 && item.AnimType <= 8) || item.AnimationType == 2) { // Translate (8 - Z; 6,7 - X)
                 if (item.AnimType == 0) {
-                    item.AnimType = 6 // idk 
+                    // item.AnimType = 6 // idk 
+                    item.AnimType = determineAnimationType(item);
                 }
                 currentAnimType = item.AnimType
 
