@@ -2485,9 +2485,9 @@ function determineAnimationType(obj) {
     let axisEnd = obj.ToGlobal(obj.Animation.AxisEnd);
 
     // Вычисляем разницы по модулю между координатами
-    let diffX = Math.abs(axisEnd.x - axisStart.x);
-    let diffY = Math.abs(axisEnd.y - axisStart.y);
-    let diffZ = Math.abs(axisEnd.z - axisStart.z);
+    let diffX = Math.abs( Math.abs(axisEnd.x) - Math.abs(axisStart.x) );
+    let diffY = Math.abs( Math.abs(axisEnd.y) - Math.abs(axisStart.y) );
+    let diffZ = Math.abs( Math.abs(axisEnd.z) - Math.abs(axisStart.z) );
 
     if (obj.AnimationType == 1) { // Ротация
         // Определяем основную ось вращения
