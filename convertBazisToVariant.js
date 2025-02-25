@@ -2491,10 +2491,9 @@ function determineAnimationType(obj) {
     let diffY = Math.abs( Math.abs(axisEnd.y) - Math.abs(axisStart.y) );
     let diffZ = Math.abs( Math.abs(axisEnd.z) - Math.abs(axisStart.z) );
 
+    let maxDiff = Math.max(diffX, diffY, diffZ);
+
     if (obj.AnimationType == 1) { // Ротация
-        // Определяем основную ось вращения
-        let maxDiff = Math.max(diffX, diffY, diffZ);
-        
         if (maxDiff === diffY) {
             // Вращение вокруг оси Y
             if (axisStart.y > axisEnd.y) {
@@ -2502,7 +2501,7 @@ function determineAnimationType(obj) {
             } else {
                 return 3; // От меньшего к большему
             }
-        } 
+        }
         else if (maxDiff === diffX) {
             // Вращение вокруг оси X
             if (axisStart.x > axisEnd.x) {
@@ -2516,8 +2515,6 @@ function determineAnimationType(obj) {
         }
     } 
     else if (obj.AnimationType == 2) { // Трансляция
-        let maxDiff = Math.max(diffX, diffY, diffZ);
-        
         if (maxDiff === diffZ) {
             return 8; // Движение по Z (от меньшего к большему при енде)
         } 
