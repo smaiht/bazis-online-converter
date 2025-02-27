@@ -219,9 +219,6 @@ newItem.Build();
 
 
 let test = Model[1]
-console.log(test.IsContourRectangle)
-console.log(test.Butts)
-
 let bt = [];
 
 
@@ -258,7 +255,7 @@ var newItem = test
 
 
 
-for (let i = 0; i <= bt.length; i++) {
+for (let i = 0; i < bt.length; i++) {
     let savedButtInfo = bt[i];
 
     var Butt = newItem.Butts.Add();

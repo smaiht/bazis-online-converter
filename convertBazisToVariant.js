@@ -2737,7 +2737,7 @@ function createSpecialComponent(obj, index, parentRotation = null) {
     component.size = {
         "x": obj.TextureOrientation == ftoVertical ? obj.GSize.x : obj.GSize.x,
         "y": obj.TextureOrientation == ftoVertical ? obj.GSize.y : obj.GSize.y,
-        "z": obj.Thickness
+        "z": obj.GSize.z // obj.Thickness
     };
 
     component.color = null;
@@ -3305,10 +3305,10 @@ function processLevel(
         let component
 
         if (item.toString() == '[object TFurnPanel]') {
-            if (item.IsContourRectangle) {
-                component = createComponent(item, totalProcessed, parentRotation);
-            } else {
+            if (!item.IsContourRectangle || item.Bent || item.Cuts.Count > 0) {
                 component = createSpecialComponent(item, totalProcessed, parentRotation);
+            } else {
+                component = createComponent(item, totalProcessed, parentRotation);
             }
 
         } else {
