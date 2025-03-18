@@ -2644,10 +2644,11 @@ function findEdgePositions(contour) {
         if (
             !line
             || !line.Pos1
-            || !line.Pos1.x
-            || !line.Pos1.y
-            || !line.Pos2.x
-            || !line.Pos2.y
+            || !line.Pos2
+            || (!line.Pos1.x && line.Pos1.x !== 0 )
+            || (!line.Pos1.y && line.Pos1.y !== 0 )
+            || (!line.Pos2.x && line.Pos2.x !== 0 )
+            || (!line.Pos2.y && line.Pos2.y !== 0 )
         ) {
             continue;
         }
@@ -2668,10 +2669,11 @@ function findEdgePositions(contour) {
         if (
             !line
             || !line.Pos1
-            || !line.Pos1.x
-            || !line.Pos1.y
-            || !line.Pos2.x
-            || !line.Pos2.y
+            || !line.Pos2
+            || (!line.Pos1.x && line.Pos1.x !== 0 )
+            || (!line.Pos1.y && line.Pos1.y !== 0 )
+            || (!line.Pos2.x && line.Pos2.x !== 0 )
+            || (!line.Pos2.y && line.Pos2.y !== 0 )
         ) {
             continue;
         }
