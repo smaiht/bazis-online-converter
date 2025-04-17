@@ -2739,15 +2739,36 @@ function createSpecialComponent(obj, index, parentRotation = null) {
     component.eulers = quaternionToEuler(component.rotation)
     
     component.size = {
-        "x": obj.TextureOrientation == ftoVertical ? obj.GSize.x : obj.GSize.y,
-        "y": obj.TextureOrientation == ftoVertical ? obj.GSize.y : obj.GSize.x,
+        "x": obj.TextureOrientation == ftoVertical ? obj.GSize.x : obj.GSize.x,
+        "y": obj.TextureOrientation == ftoVertical ? obj.GSize.y : obj.GSize.y,
         "z": obj.GSize.z // obj.Thickness
     };
+
+    const newProcessings = ftoVertical 
+        ? [] 
+        : [
+            {
+            "offset": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0
+            },
+            "rotation": 90.0,
+            "type": 2,
+            "name": "Текстурные координаты",
+            "path": "Обработчики UV",
+            "guid": newGuid()
+            }
+        ];
 
     component.color = null;
     component.ignore_bounds = true;
     component.bake = null;
-    component.processings = [];
+    // component.processings = [];
+    component.processings = newProcessings;
     component.is_active = true;
     component.max_texture_size = 512;
     component.build_order = index;
@@ -2816,15 +2837,36 @@ function createComponent(obj, index, parentRotation = null) {
     component.eulers = quaternionToEuler(component.rotation)
     
     component.size = {
-        "x": obj.TextureOrientation == ftoVertical ? obj.GSize.x : obj.GSize.y,
-        "y": obj.TextureOrientation == ftoVertical ? obj.GSize.y : obj.GSize.x,
+        "x": obj.TextureOrientation == ftoVertical ? obj.GSize.x : obj.GSize.x,
+        "y": obj.TextureOrientation == ftoVertical ? obj.GSize.y : obj.GSize.y,
         "z": obj.Thickness
     };
+
+    const newProcessings = ftoVertical 
+        ? [] 
+        : [
+            {
+            "offset": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0
+            },
+            "rotation": 90.0,
+            "type": 2,
+            "name": "Текстурные координаты",
+            "path": "Обработчики UV",
+            "guid": newGuid()
+            }
+        ];
 
     component.color = null;
     component.ignore_bounds = true;
     component.bake = null;
-    component.processings = [];
+    // component.processings = [];
+    component.processings = newProcessings;
     component.is_active = true;
     component.max_texture_size = 512;
     component.build_order = index;
