@@ -3,6 +3,8 @@ system.sleep(500);
 
 let fs = require('fs');
 
+const ftoVertical = 2;
+
 const sys_mats = {
     "isMask": "c0c04c47-1874-493a-b604-87372bc9dcf9",
     "fake_shadow": "9c341587-0cb6-4941-9ab1-f6a90b449166",
@@ -2737,8 +2739,8 @@ function createSpecialComponent(obj, index, parentRotation = null) {
     component.eulers = quaternionToEuler(component.rotation)
     
     component.size = {
-        "x": obj.TextureOrientation == ftoVertical ? obj.GSize.x : obj.GSize.x,
-        "y": obj.TextureOrientation == ftoVertical ? obj.GSize.y : obj.GSize.y,
+        "x": obj.TextureOrientation == ftoVertical ? obj.GSize.x : obj.GSize.y,
+        "y": obj.TextureOrientation == ftoVertical ? obj.GSize.y : obj.GSize.x,
         "z": obj.GSize.z // obj.Thickness
     };
 
@@ -2814,8 +2816,8 @@ function createComponent(obj, index, parentRotation = null) {
     component.eulers = quaternionToEuler(component.rotation)
     
     component.size = {
-        "x": obj.TextureOrientation == ftoVertical ? obj.GSize.x : obj.GSize.x,
-        "y": obj.TextureOrientation == ftoVertical ? obj.GSize.y : obj.GSize.y,
+        "x": obj.TextureOrientation == ftoVertical ? obj.GSize.x : obj.GSize.y,
+        "y": obj.TextureOrientation == ftoVertical ? obj.GSize.y : obj.GSize.x,
         "z": obj.Thickness
     };
 
