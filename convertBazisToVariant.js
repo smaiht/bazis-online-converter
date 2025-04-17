@@ -2744,7 +2744,7 @@ function createSpecialComponent(obj, index, parentRotation = null) {
         "z": obj.GSize.z // obj.Thickness
     };
 
-    const newProcessings = ftoVertical 
+    const newProcessings = obj.TextureOrientation == ftoVertical
         ? [] 
         : [
             {
@@ -2842,7 +2842,7 @@ function createComponent(obj, index, parentRotation = null) {
         "z": obj.Thickness
     };
 
-    const newProcessings = ftoVertical 
+    const newProcessings = obj.TextureOrientation == ftoVertical
         ? [] 
         : [
             {
